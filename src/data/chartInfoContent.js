@@ -17,7 +17,7 @@ export const CHART_INFO = {
   heatmap: {
     title: "Province × week matrix",
     guide: [
-      "Rows are provinces; columns are surveillance weeks inside your range. Colour uses the same ramp as the choropleth; for count metrics the legend’s numeric scale can differ from the map because cells are single-week values while the map aggregates over the range.",
+      "Rows are the provinces; columns are surveillance weeks inside your range. Colour uses the same ramp as the choropleth; for count metrics the legend’s numeric scale can differ from the map because cells are single-week values while the map aggregates over the range.",
       "Click a row label to select a province for the main trend chart. Hover a cell for that province, week, and value.",
     ],
     notes: [
