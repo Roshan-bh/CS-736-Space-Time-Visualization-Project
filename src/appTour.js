@@ -12,61 +12,61 @@ export const APP_TOUR_STEPS = [
     target: '[data-tour="app-header"]',
     title: "Welcome",
     content:
-      "This walkthrough covers the Dashboard (map, trend, optional matrix) and the Province & virus comparison page—plus filters, multi-virus overlays, and comparison charts. Use Next to follow in order (the tour switches pages when needed).",
+      "This walkthrough covers the Dashboard (map, trend, optional matrix) and the Province & virus comparison page\u2014plus filters, multi-virus overlays, and comparison charts. Use Next to follow in order (the tour switches pages when needed).",
     placement: "bottom",
   },
   {
-    target: ‘[data-tour="tour-sidebar-nav"]’,
+    target: '[data-tour="tour-sidebar-nav"]',
     title: "Pages",
     content:
-      "Dashboard links the choropleth, temporal trend, and optional province × week matrix. Province & virus comparison opens a dedicated page: one chart per selected virus, comparing multiple provinces with the same metric and week range from Filters.",
+      "Dashboard links the choropleth, temporal trend, and optional province \u00d7 week matrix. Province & virus comparison opens a dedicated page: one chart per selected virus, comparing multiple provinces with the same metric and week range from Filters.",
     placement: "bottom",
   },
   {
-    target: ‘[data-tour="tour-filters-intro"]’,
+    target: '[data-tour="tour-filters-intro"]',
     title: "Filters bar",
     content:
-      "All controls here apply together to the map, trend chart, and matrix (when visible) — same virus, metric, and time window across all views. On the comparison page, only metric and week apply; provinces and viruses are chosen in the main panel.",
+      "All controls here apply together to the map, trend chart, and matrix (when visible) \u2014 same virus, metric, and time window across all views. On the comparison page, only metric and week apply; provinces and viruses are chosen in the main panel.",
     placement: "bottom",
   },
   {
-    target: ‘[data-tour="tour-filter-virus"]’,
+    target: '[data-tour="tour-filter-virus"]',
     title: "Virus",
     content:
-      "Choose which respiratory virus to explore. Changing this updates surveillance-driven views to that pathogen’s data.",
+      "Choose which respiratory virus to explore. Changing this updates surveillance-driven views to that pathogen's data.",
     placement: "bottom",
   },
   {
-    target: ‘[data-tour="tour-filter-metric"]’,
+    target: '[data-tour="tour-filter-metric"]',
     title: "Metric",
     content:
-      "Pick what to measure—positivity, positive tests, or test volume. The map and heatmap share the same yellow–orange–red colour ramp; for count metrics, legend numeric ranges can differ between map (range totals) and matrix (weekly cells).",
+      "Pick what to measure\u2014positivity, positive tests, or test volume. The map and heatmap share the same yellow\u2013orange\u2013red colour ramp; for count metrics, legend numeric ranges can differ between map (range totals) and matrix (weekly cells).",
     placement: "bottom",
   },
   {
-    target: ‘[data-tour="tour-filter-week"]’,
+    target: '[data-tour="tour-filter-week"]',
     title: "Week range",
     content:
       "Drag the two handles to set the inclusive week window. The map aggregates over this range (or animates week-by-week); the trend chart and heatmap columns use weeks inside it.",
     placement: "bottom",
   },
   {
-    target: ‘[data-tour="tour-filter-reset"]’,
+    target: '[data-tour="tour-filter-reset"]',
     title: "Reset selection",
     content:
-      "Clears the selected province and restores the week range to the full span in the data—without changing virus or metric.",
+      "Clears the selected province and restores the week range to the full span in the data\u2014without changing virus or metric.",
     placement: "bottom",
   },
   {
-    target: ‘[data-tour="tour-filter-region"]’,
+    target: '[data-tour="tour-filter-region"]',
     title: "Selected region",
     content:
       "Shows which province is focused for the main trend chart (or national when none is selected). Choose a region from the map or from heatmap row labels when the matrix is visible.",
     placement: "bottom",
   },
   {
-    target: ‘[data-tour="tour-matrix-toggle"]’,
-    title: "Province × week matrix",
+    target: '[data-tour="tour-matrix-toggle"]',
+    title: "Province \u00d7 week matrix",
     content:
       "Turn this on to show the heatmap beside the choropleth on wide screens (stacked on small screens), or off to give the map the full width. The matrix uses the same colour ramp as the map; click row labels to select a province; hover cells for values.",
     placement: "bottom",
@@ -96,7 +96,7 @@ export const APP_TOUR_STEPS = [
     target: '[data-tour="panel-cross-compare"]',
     title: "Province & virus comparison page",
     content:
-      "You’re on the comparison page (or it opens when you reach this step). Metric and week range in the sidebar still apply. Pick any number of provinces and up to the max number of virus panels; each virus gets its own chart comparing all selected provinces. Use + Map selection after selecting a region on the Dashboard map.",
+      "You're on the comparison page (or it opens when you reach this step). Metric and week range in the sidebar still apply. Pick any number of provinces and up to the max number of virus panels; each virus gets its own chart comparing all selected provinces. Use + Map selection after selecting a region on the Dashboard map.",
     placement: "left",
   },
   {
@@ -110,7 +110,7 @@ export const APP_TOUR_STEPS = [
     target: '[data-tour="tour-compare-grids"]',
     title: "Provinces and viruses",
     content:
-      "Check provinces and viruses to build your comparison. Limits apply when the selection is too large—reduce checkboxes if you see a warning. Choose Line or Bars for all panels once both lists are non-empty and weeks exist in range.",
+      "Check provinces and viruses to build your comparison. Limits apply when the selection is too large\u2014reduce checkboxes if you see a warning. Choose Line or Bars for all panels once both lists are non-empty and weeks exist in range.",
     placement: "left",
   },
 ];
