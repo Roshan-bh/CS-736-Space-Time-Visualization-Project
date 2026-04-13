@@ -25,7 +25,7 @@
 .app {
   max-width: 1400px;
   margin: 0 auto;
-  padding: 1.5rem 1.25rem 3rem;
+  padding: 0 1.25rem 3rem;
   font-family: var(--app-font);
   color: var(--text-body);
   background: var(--app-bg);
@@ -107,34 +107,61 @@
 }
 
 .app-header-top {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 1.75rem;
+  height: 72px;
   display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 0.75rem 1rem;
+  align-items: center;
+  gap: 2rem;
+}
+
+.app-header-title {
+  min-width: 0;
 }
 
 .app-header-top h1 {
-  flex: 1 1 16rem;
+  font-size: 1.12rem;
+  font-weight: 700;
+  color: #1a6fa8;
+  white-space: nowrap;
+  margin: 0;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  flex-shrink: 0;
   min-width: 0;
+}
+
+.app-header {
+  background: #ffffff;
+  border-bottom: 2px solid #1a6fa8;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  margin-right: calc(50% - 50vw);
+  position: static;
+  z-index: 100;
 }
 
 .btn-tour {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  flex-shrink: 0;
-  padding: 0.42rem 1rem 0.42rem 0.75rem;
-  border-radius: 99px;
-  border: 1.5px solid #d1d5db;
-  background: linear-gradient(135deg, #ffffff 0%, #f3f4f6 100%);
+  margin-left: auto;
+  font-family: var(--app-font);
+  font-size: 0.82rem;
+  font-weight: 700;
+  border: 1px solid #d1d9e6;
+  border-radius: 999px;
+  padding: 0 14px;
+  height: 34px;
+  background: linear-gradient(180deg, #ffffff 0%, #eef5fb 100%);
   color: var(--text-heading);
-  font-weight: 600;
-  font-size: 0.85rem;
-  cursor: pointer;
+  letter-spacing: 0.01em;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+  transition: background 0.16s ease, border-color 0.16s ease, transform 0.08s ease, box-shadow 0.16s ease;
   white-space: nowrap;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
-  transition: background 0.18s ease, box-shadow 0.18s ease, transform 0.15s ease;
+  cursor: pointer;
 }
 
 .btn-tour-icon {
@@ -143,34 +170,35 @@
 }
 
 .btn-tour:hover {
-  background: linear-gradient(135deg, #f9fafb 0%, #e5e7eb 100%);
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.14);
-  transform: translateY(-1px);
+  background: linear-gradient(180deg, #f7fbff 0%, #e5eef7 100%);
+  border-color: #b8c7d8;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.12);
 }
 
 .btn-tour:active {
-  transform: translateY(0);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  transform: translateY(1px);
 }
 
 .btn-tour:focus-visible {
   outline: 2px solid var(--text-heading);
-  outline-offset: 3px;
+  outline-offset: 2px;
 }
 
 .app-header h1 {
-  font-size: 1.4rem;
-  font-weight: 600;
-  line-height: 1.35;
-  margin: 0 0 0.5rem;
-  color: var(--text-heading);
+  font-size: 1.12rem;
+  font-weight: 700;
+  color: #1a6fa8;
+  white-space: nowrap;
+  margin: 0;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
 }
 
 .subtitle {
-  margin: 0;
-  font-size: 1rem;
-  color: var(--text-body);
-  max-width: 52rem;
+  font-size: 0.72rem;
+  color: #6b7280;
+  margin: 1px 0 0;
+  letter-spacing: 0.01em;
 }
 
 .banner {
@@ -980,7 +1008,6 @@
 .canada-map {
   display: block;
   width: 100%;
-  vertical-align: top;
 }
 
 .canada-map .province-label {
@@ -1280,12 +1307,11 @@
   display: block;
   max-width: none;
   height: auto;
-  vertical-align: top;
 }
 
 .viz-tooltip {
   position: fixed;
-  z-index: 1000;
+  z-index: 300;
   pointer-events: none;
   background: rgba(255, 255, 255, 0.98);
   border: 1px solid #ccc;
@@ -1708,33 +1734,27 @@
 }
 
 .app-footer {
-  margin-top: 2rem;
-  margin-left: -1.25rem;
-  margin-right: -1.25rem;
-  margin-bottom: -3rem;
-  padding: 0.75rem 1.5rem;
-  background: #f1f5f9;
-  border-top: 1px solid #e2e8f0;
-  color: #64748b;
+  background: #ffffff;
+  border-top: 1px solid #dde1e7;
+  padding: 1rem 1.5rem;
   font-size: 0.75rem;
-  line-height: 1.4;
+  color: #6b7280;
   text-align: center;
+  margin-top: 2rem;
 }
 
 .app-footer p {
   margin: 0 auto;
-  max-width: 60rem;
+  max-width: 48rem;
 }
 
 .app-footer a {
-  color: #2563eb;
-  font-weight: 600;
-  text-decoration: underline;
-  text-underline-offset: 2px;
+  color: #1a6fa8;
+  text-decoration: none;
 }
 
 .app-footer a:hover {
-  color: #1d4ed8;
+  text-decoration: underline;
 }
 
 @media (max-width: 900px) {
