@@ -54,25 +54,6 @@ export default function CrossProvinceVirusSection({
         <ChartInfoButton chartId="crossCompare" />
       </div>
 
-      <div className="week-range-bar">
-        <span className="wrb-label">Week range</span>
-        {n > 0 && (
-          <span className="wrb-dates">{startLabel} – {endLabel}</span>
-        )}
-        <div className="wrb-slider">
-          <WeekRangeSlider
-            min={0}
-            max={maxIdx}
-            value={[
-              Math.min(weekRangeIndices[0], maxIdx),
-              Math.min(weekRangeIndices[1], maxIdx),
-            ]}
-            onChange={onWeekRangeIndices}
-            disabled={n === 0 || maxIdx === 0}
-          />
-        </div>
-      </div>
-
       {showCollapseToggle && (
         <button
           type="button"
@@ -160,6 +141,25 @@ export default function CrossProvinceVirusSection({
               your checkboxes to load charts.
             </p>
           )}
+
+          <div className="week-range-bar">
+            <span className="wrb-label">Week range</span>
+            {n > 0 && (
+              <span className="wrb-dates">{startLabel} – {endLabel}</span>
+            )}
+            <div className="wrb-slider">
+              <WeekRangeSlider
+                min={0}
+                max={maxIdx}
+                value={[
+                  Math.min(weekRangeIndices[0], maxIdx),
+                  Math.min(weekRangeIndices[1], maxIdx),
+                ]}
+                onChange={onWeekRangeIndices}
+                disabled={n === 0 || maxIdx === 0}
+              />
+            </div>
+          </div>
 
           {hasSelection && weeksInRangeLength > 0 && (
             <div

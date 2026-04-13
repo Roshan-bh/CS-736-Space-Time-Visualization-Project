@@ -23,7 +23,7 @@
 }
 
 .app {
-  /* max-width: 1320px; */
+  max-width: 1400px;
   margin: 0 auto;
   padding: 1.5rem 1.25rem 3rem;
   font-family: var(--app-font);
@@ -1472,11 +1472,9 @@
   color: #64748b;
 }
 
-/* Map-only layout: centre the map panel with breathing room on wide screens */
+/* Map-only layout: panel fills the constrained app width naturally */
 .dashboard-map-row--map-only .panel-map {
-  max-width: 960px;
-  margin-left: auto;
-  margin-right: auto;
+  width: 100%;
 }
 
 /* Map + sidebar (legend + detail) layout */

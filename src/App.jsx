@@ -702,7 +702,9 @@ export default function App() {
               <h2>Regional Activity (Choropleth Map)</h2>
               <ChartInfoButton chartId="map" />
             </div>
-            <p className="panel-metric-note">{mapPanelMetricNote}</p>
+            {(playbackRunning || mapPlayback.paused) && (
+              <p className="panel-metric-note">{mapPanelMetricNote}</p>
+            )}
             <div className="map-toolbar">
               <button
                 type="button"
@@ -737,15 +739,6 @@ export default function App() {
                 ) : "No weeks"}
               </span>
             </div>
-            {(playbackRunning || mapPlayback.paused) && (
-              <p className="map-week-title" role="status" aria-live="polite">
-                {playbackRunning ? "Playing" : "Paused"}:{" "}
-                <strong>week {playbackWeekLabel}</strong>
-                <span className="map-week-title-meta">
-                  {" "}({playbackIndex + 1} of {weeksInRange.length} in range)
-                </span>
-              </p>
-            )}
             <div className="map-layout">
               {data.geo && (
                 <div className="map-stage">

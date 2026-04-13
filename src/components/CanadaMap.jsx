@@ -139,16 +139,25 @@ export default function CanadaMap({
       .attr("fill", `url(#${hatchId})`)
       .attr("pointer-events", "none");
 
-    const labelFont = Math.max(9, Math.min(13, width / 52));
+    const labelFont = Math.max(8, Math.min(13, width / 55));
     const labelRows = geo.features.map((feature) => {
       const c = path.centroid(feature);
+      const bounds = path.bounds(feature);
+      const bboxW = Math.abs(bounds[1][0] - bounds[0][0]);
+      const bboxH = Math.abs(bounds[1][1] - bounds[0][1]);
       const name = feature.properties?.name;
+      const abbrev = name ? PROVINCE_NAME_TO_ABBREV[name] ?? "" : "";
+      const estTextW = abbrev.length * labelFont * 0.75;
       return {
         key: name ?? String(feature),
         cx: c[0],
         cy: c[1],
-        abbrev: name ? PROVINCE_NAME_TO_ABBREV[name] ?? "" : "",
-        ok: Number.isFinite(c[0]) && Number.isFinite(c[1]),
+        abbrev,
+        bboxW,
+        bboxH,
+        ok: Number.isFinite(c[0]) && Number.isFinite(c[1])
+          && bboxW > estTextW
+          && bboxH > labelFont * 1.1,
       };
     });
     g.append("g")
@@ -160,7 +169,7 @@ export default function CanadaMap({
       .attr("class", "province-label")
       .attr("font-size", labelFont)
       .attr("transform", (r) =>
-        r.ok ? `translate(${r.cx},${r.cy})` : "translate(0,0)"
+        r.ok ? `translate(${r.cx},${r.cy})` : "translate(-9999,-9999)"
       )
       .attr("opacity", (r) => (r.ok ? 1 : 0))
       .attr("text-anchor", "middle")
@@ -191,7 +200,14 @@ export default function CanadaMap({
       .on("zoom", (event) => {
         gZoom.attr("transform", event.transform);
         const k = event.transform.k;
-        g.selectAll(".province-label").attr("font-size", labelFont / k);
+        const curFont = labelFont / k;
+        g.selectAll(".province-label")
+          .attr("font-size", curFont)
+          .attr("opacity", (d) => {
+            if (!d.ok) return 0;
+            const estW = d.abbrev.length * curFont * 0.75;
+            return (d.bboxW * k > estW && d.bboxH * k > curFont * 1.1) ? 1 : 0;
+          });
       });
 
     svg.call(zoom);
