@@ -598,7 +598,22 @@ export default function App() {
             onClick={startGuidedTour}
             aria-label="Start guided tour of the dashboard and comparison page"
           >
-            Take a tour
+            <svg
+              width="15"
+              height="15"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+              className="btn-tour-icon"
+            >
+              <circle cx="12" cy="12" r="10" />
+              <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" />
+            </svg>
+            Tour guide
           </button>
         </div>
       </header>
@@ -770,11 +785,6 @@ export default function App() {
               <h2>Province × Week Matrix</h2>
               <ChartInfoButton chartId="heatmap" />
             </div>
-            <p className="panel-metric-note">{heatmapPanelMetricNote}</p>
-            <p className="panel-desc">
-              Rows are provinces; columns are weeks in range. Axis labels every 4th week; vertical lines mark
-              weeks (major every 4th). Click a row label to select a province.
-            </p>
             <div className="heatmap-legend-row">
               <Legend
                 key={`heat-legend-${selectedMetric}`}

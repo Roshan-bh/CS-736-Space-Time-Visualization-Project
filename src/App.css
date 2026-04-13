@@ -112,25 +112,42 @@
 }
 
 .btn-tour {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
   flex-shrink: 0;
-  padding: 0.45rem 0.9rem;
-  border-radius: 6px;
-  border: 1px solid var(--text-heading);
-  background: #fff;
+  padding: 0.42rem 1rem 0.42rem 0.75rem;
+  border-radius: 99px;
+  border: 1.5px solid var(--text-heading);
+  background: linear-gradient(135deg, #f0f9ff 0%, #dbeafe 100%);
   color: var(--text-heading);
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   cursor: pointer;
   white-space: nowrap;
+  box-shadow: 0 1px 4px rgba(12, 74, 110, 0.14);
+  transition: background 0.18s ease, box-shadow 0.18s ease, transform 0.15s ease;
+}
+
+.btn-tour-icon {
+  flex-shrink: 0;
+  display: block;
 }
 
 .btn-tour:hover {
-  background: var(--accent-soft);
+  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+  box-shadow: 0 3px 8px rgba(12, 74, 110, 0.22);
+  transform: translateY(-1px);
+}
+
+.btn-tour:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 3px rgba(12, 74, 110, 0.12);
 }
 
 .btn-tour:focus-visible {
   outline: 2px solid var(--text-heading);
-  outline-offset: 2px;
+  outline-offset: 3px;
 }
 
 .app-header h1 {

@@ -29,15 +29,7 @@ export default function Controls({
   const endLabel = n > 0 ? weekKeysSorted[weekRangeIndices[1]] ?? "" : "—";
 
   return (
-    <div className="controls-panel">
-      <div data-tour="tour-filters-intro">
-        <h2 className="filters-heading">Filters</h2>
-        <p className="filters-intro">
-          {comparePage
-            ? "Metric and week range apply to the comparison charts. Provinces and viruses are chosen in the main panel."
-            : "Virus, metric, and week window apply to the map, trend, and matrix (when the matrix is shown)."}
-        </p>
-      </div>
+    <div className="controls-panel" data-tour="tour-filters-intro">
 
       {!comparePage && (
         <label className="control control-block" data-tour="tour-filter-virus">
