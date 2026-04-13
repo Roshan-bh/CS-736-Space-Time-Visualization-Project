@@ -74,9 +74,8 @@ export default function Controls({
           Week range
           {n > 0 && (
             <span className="week-hint">
-              <br />
               <span className="week-range-labels">
-                {startLabel} → {endLabel}
+                {" "}{startLabel}–{endLabel}
               </span>
             </span>
           )}
