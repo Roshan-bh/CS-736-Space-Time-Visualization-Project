@@ -102,8 +102,8 @@ export default function CanadaMap({
         const val = v == null || Number.isNaN(v) ? 0 : v;
         return colorScale(val);
       })
-      .attr("stroke", "#1a3a5c")
-      .attr("stroke-opacity", 0.55)
+      .attr("stroke", "#64748b")
+      .attr("stroke-opacity", 0.45)
       .attr("stroke-width", strokeBase)
       .style("cursor", "pointer")
       .on("mouseenter", (event, d) => {
@@ -190,6 +190,8 @@ export default function CanadaMap({
       })
       .on("zoom", (event) => {
         gZoom.attr("transform", event.transform);
+        const k = event.transform.k;
+        g.selectAll(".province-label").attr("font-size", labelFont / k);
       });
 
     svg.call(zoom);
