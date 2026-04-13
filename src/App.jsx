@@ -659,10 +659,9 @@ export default function App() {
             onVirus={setSelectedVirus}
             selectedMetric={selectedMetric}
             onMetric={setSelectedMetric}
-            weekKeysSorted={weekKeysSorted}
-            weekRangeIndices={weekRangeIndices}
-            onWeekRangeIndices={setUserWeekRange}
             selectedProvince={selectedProvince}
+            onProvince={setSelectedProvince}
+            provinceList={data.provinceList}
             onReset={handleReset}
             showProvinceWeekMatrix={showProvinceWeekMatrix}
             onShowProvinceWeekMatrix={setShowProvinceWeekMatrix}
@@ -738,16 +737,6 @@ export default function App() {
                 ) : "No weeks"}
               </span>
             </div>
-            <div className="map-legend-row">
-              <Legend
-                key={`map-legend-${selectedMetric}-${playbackRunning ? "play" : "range"}`}
-                title={`${metricLabel} (map — ${playbackRunning ? "single week" : "range total"})`}
-                colorScale={mapColorScale}
-                format={legendFormat}
-                footnote={mapLegendFootnote}
-                height={sparseTerritoryProvinces.size ? 102 : 96}
-              />
-            </div>
             {(playbackRunning || mapPlayback.paused) && (
               <p className="map-week-title" role="status" aria-live="polite">
                 {playbackRunning ? "Playing" : "Paused"}:{" "}
@@ -757,27 +746,66 @@ export default function App() {
                 </span>
               </p>
             )}
-            {data.geo && (
-              <div className="map-stage">
-                <button
-                  type="button"
-                  className="btn-map-reset"
-                  onClick={handleReset}
-                  aria-label="Reset selection — clear province and restore full week range (same as sidebar)"
-                >
-                  Reset selection
-                </button>
-                <CanadaMap
-                  geo={data.geo}
-                  choroplethByProvince={choroplethForMap}
-                  colorScale={mapColorScale}
-                  selectedProvince={selectedProvince}
-                  onSelectProvince={setSelectedProvince}
-                  onProvinceHover={onMapHover}
-                  sparseProvinces={sparseTerritoryProvinces}
-                />
+            <div className="map-layout">
+              {data.geo && (
+                <div className="map-stage">
+                  <button
+                    type="button"
+                    className="btn-map-reset"
+                    onClick={handleReset}
+                    aria-label="Reset selection"
+                  >
+                    Reset selection
+                  </button>
+                  <CanadaMap
+                    geo={data.geo}
+                    choroplethByProvince={choroplethForMap}
+                    colorScale={mapColorScale}
+                    selectedProvince={selectedProvince}
+                    onSelectProvince={setSelectedProvince}
+                    onProvinceHover={onMapHover}
+                    sparseProvinces={sparseTerritoryProvinces}
+                  />
+                </div>
+              )}
+              <div className="map-sidebar">
+                <div className="legend-box">
+                  <Legend
+                    key={`map-legend-${selectedMetric}-${playbackRunning ? "play" : "range"}`}
+                    title={`${metricLabel} — ${playbackRunning ? "single week" : "range total"}`}
+                    colorScale={mapColorScale}
+                    format={legendFormat}
+                    footnote={mapLegendFootnote}
+                    height={sparseTerritoryProvinces.size ? 102 : 96}
+                  />
+                </div>
+                <div className="detail-panel">
+                  {selectedProvince ? (
+                    <>
+                      <p className="detail-panel-province">{selectedProvince}</p>
+                      <table className="detail-table">
+                        <tbody>
+                          <tr>
+                            <td>Positivity</td>
+                            <td>{formatMetricValueById("positivity", choroplethMapsByMetric.positivity?.get(selectedProvince))}</td>
+                          </tr>
+                          <tr>
+                            <td>Positive tests</td>
+                            <td>{formatMetricValueById("positives", choroplethMapsByMetric.positives?.get(selectedProvince))}</td>
+                          </tr>
+                          <tr>
+                            <td>Total tests</td>
+                            <td>{formatMetricValueById("tests", choroplethMapsByMetric.tests?.get(selectedProvince))}</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </>
+                  ) : (
+                    <p className="detail-panel-empty">Click a province on the map or use the Province filter to see details.</p>
+                  )}
+                </div>
               </div>
-            )}
+            </div>
             <div className="map-week-slider-wrap" data-tour="tour-filter-week">
               <div className="map-week-slider-label">
                 <span>Week range</span>
@@ -1020,6 +1048,9 @@ export default function App() {
                   metricId={selectedMetric}
                   onTrendHover={onTrendHover}
                   weeksInRangeLength={weeksInRange.length}
+                  weekKeysSorted={weekKeysSorted}
+                  weekRangeIndices={weekRangeIndices}
+                  onWeekRangeIndices={setUserWeekRange}
                 />
               }
             />

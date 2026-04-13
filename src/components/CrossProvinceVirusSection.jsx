@@ -5,6 +5,7 @@
 
 import TrendChart from "./TrendChart.jsx";
 import ChartInfoButton from "./ChartInfoButton.jsx";
+import WeekRangeSlider from "./WeekRangeSlider.jsx";
 import { VIRUS_OPTIONS } from "../utils/constants.js";
 
 export default function CrossProvinceVirusSection({
@@ -33,7 +34,14 @@ export default function CrossProvinceVirusSection({
   metricId,
   onTrendHover,
   weeksInRangeLength,
+  weekKeysSorted = [],
+  weekRangeIndices = [0, 0],
+  onWeekRangeIndices,
 }) {
+  const n = weekKeysSorted.length;
+  const maxIdx = Math.max(0, n - 1);
+  const startLabel = n > 0 ? weekKeysSorted[weekRangeIndices[0]] ?? "" : "—";
+  const endLabel = n > 0 ? weekKeysSorted[weekRangeIndices[1]] ?? "" : "—";
   const hasSelection =
     selectedProvinces.length > 0 && selectedViruses.length > 0 && !selectionTooLarge;
 
@@ -45,6 +53,26 @@ export default function CrossProvinceVirusSection({
         <h2>Province & Virus Comparisons</h2>
         <ChartInfoButton chartId="crossCompare" />
       </div>
+
+      <div className="week-range-bar">
+        <span className="wrb-label">Week range</span>
+        {n > 0 && (
+          <span className="wrb-dates">{startLabel} – {endLabel}</span>
+        )}
+        <div className="wrb-slider">
+          <WeekRangeSlider
+            min={0}
+            max={maxIdx}
+            value={[
+              Math.min(weekRangeIndices[0], maxIdx),
+              Math.min(weekRangeIndices[1], maxIdx),
+            ]}
+            onChange={onWeekRangeIndices}
+            disabled={n === 0 || maxIdx === 0}
+          />
+        </div>
+      </div>
+
       {showCollapseToggle && (
         <button
           type="button"

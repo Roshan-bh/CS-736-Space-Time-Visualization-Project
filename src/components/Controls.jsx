@@ -1,33 +1,23 @@
 /**
- * Global filters: virus, metric, week range, reset, province indicator.
- * Intended for the sticky side panel.
+ * Global filters: virus, metric, province selector, reset, matrix toggle.
+ * On comparePage only the metric dropdown is shown (week range lives in the compare section).
  */
 
 import { METRIC_OPTIONS, VIRUS_OPTIONS } from "../utils/constants.js";
-import WeekRangeSlider from "./WeekRangeSlider.jsx";
 
 export default function Controls({
   selectedVirus,
   onVirus,
   selectedMetric,
   onMetric,
-  weekKeysSorted,
-  weekRangeIndices,
-  onWeekRangeIndices,
   selectedProvince,
+  onProvince,
+  provinceList = [],
   onReset,
   showProvinceWeekMatrix,
   onShowProvinceWeekMatrix,
-  /** When true, only controls that affect the /compare charts are shown (metric + week). */
   comparePage = false,
 }) {
-  const n = weekKeysSorted.length;
-  const maxIdx = Math.max(0, n - 1);
-
-  const startLabel =
-    n > 0 ? weekKeysSorted[weekRangeIndices[0]] ?? "" : "—";
-  const endLabel = n > 0 ? weekKeysSorted[weekRangeIndices[1]] ?? "" : "—";
-
   return (
     <div className="controls-panel" data-tour="tour-filters-intro">
 
@@ -61,28 +51,20 @@ export default function Controls({
         </select>
       </label>
 
-      {comparePage && <div className="control control-block week-range-block">
-        <span>
-          Week range
-          {n > 0 && (
-            <span className="week-hint">
-              <span className="week-range-labels">
-                {" "}{startLabel}–{endLabel}
-              </span>
-            </span>
-          )}
-        </span>
-        <WeekRangeSlider
-          min={0}
-          max={maxIdx}
-          value={[
-            Math.min(weekRangeIndices[0], maxIdx),
-            Math.min(weekRangeIndices[1], maxIdx),
-          ]}
-          onChange={onWeekRangeIndices}
-          disabled={n === 0 || maxIdx === 0}
-        />
-      </div>}
+      {!comparePage && provinceList.length > 0 && (
+        <label className="control control-block" data-tour="tour-filter-province">
+          <span>Province</span>
+          <select
+            value={selectedProvince ?? ""}
+            onChange={(e) => onProvince(e.target.value || null)}
+          >
+            <option value="">All provinces</option>
+            {provinceList.map((p) => (
+              <option key={p} value={p}>{p}</option>
+            ))}
+          </select>
+        </label>
+      )}
 
       {!comparePage && (
         <button
@@ -91,21 +73,8 @@ export default function Controls({
           onClick={onReset}
           data-tour="tour-filter-reset"
         >
-          Reset selection
+          Reset
         </button>
-      )}
-
-      {!comparePage && (
-        <div className="selection-bar" data-tour="tour-filter-region">
-          <strong>Selected region</strong>
-          <div className="selection-bar-body">
-            {selectedProvince ? (
-              <span className="badge-province">{selectedProvince}</span>
-            ) : (
-              <span className="muted">National (click a province on the map)</span>
-            )}
-          </div>
-        </div>
       )}
 
       {!comparePage && (
@@ -120,11 +89,8 @@ export default function Controls({
               checked={showProvinceWeekMatrix}
               onChange={(e) => onShowProvinceWeekMatrix(e.target.checked)}
             />
-            <span>Show Province × Week Matrix</span>
+            <span>Province × Week Matrix</span>
           </label>
-          <p className="matrix-toggle-hint">
-            When on, the matrix appears beside the map. When off, the map uses the full width.
-          </p>
         </div>
       )}
     </div>

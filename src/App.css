@@ -1474,9 +1474,142 @@
 
 /* Map-only layout: centre the map panel with breathing room on wide screens */
 .dashboard-map-row--map-only .panel-map {
-  max-width: 860px;
+  max-width: 960px;
   margin-left: auto;
   margin-right: auto;
+}
+
+/* Map + sidebar (legend + detail) layout */
+.map-layout {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.25rem;
+  margin-top: 0.5rem;
+}
+
+.map-layout .map-stage {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.map-sidebar {
+  flex-shrink: 0;
+  width: 260px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.legend-box {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 0.85rem 1rem;
+}
+
+.detail-panel {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 0.85rem 1rem;
+  font-size: 0.78rem;
+}
+
+.detail-panel-province {
+  color: #1d4ed8;
+  font-size: 0.88rem;
+  font-weight: 700;
+  margin: 0 0 0.55rem;
+}
+
+.detail-panel-empty {
+  color: #94a3b8;
+  font-size: 0.78rem;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.detail-table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.detail-table tr:not(:last-child) td {
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.detail-table td {
+  padding: 4px 2px;
+  vertical-align: top;
+}
+
+.detail-table td:first-child {
+  color: #64748b;
+  width: 55%;
+}
+
+.detail-table td:last-child {
+  text-align: right;
+  font-weight: 600;
+  color: #111827;
+}
+
+@media (max-width: 1000px) {
+  .map-layout {
+    flex-direction: column;
+  }
+  .map-sidebar {
+    flex-direction: row;
+    flex-wrap: wrap;
+    width: 100%;
+  }
+  .legend-box,
+  .detail-panel {
+    flex: 1 1 200px;
+  }
+}
+
+/* Week range bar — used inside the compare section */
+.week-range-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem 1rem;
+  padding: 0.6rem 1.25rem;
+  margin-bottom: 1rem;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+.wrb-label {
+  flex-shrink: 0;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #64748b;
+  white-space: nowrap;
+}
+
+.wrb-dates {
+  flex-shrink: 0;
+  min-width: 7rem;
+  padding: 2px 8px;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 5px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #1d4ed8;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.wrb-slider {
+  flex: 1 1 200px;
+  min-width: 160px;
 }
 
 /* Week range slider placed inside the map panel */
