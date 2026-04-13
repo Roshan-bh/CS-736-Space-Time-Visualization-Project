@@ -5,7 +5,7 @@ import { Joyride, EVENTS, STATUS } from "react-joyride";
 
 import "./App.css";
 
-import WeekRangeSlider from "./components/WeekRangeSlider.jsx";
+import Controls from "./components/Controls.jsx";
 import CanadaMap from "./components/CanadaMap.jsx";
 import TrendChart from "./components/TrendChart.jsx";
 import CompareNationalGrid from "./components/CompareNationalGrid.jsx";
@@ -14,6 +14,7 @@ import Heatmap from "./components/Heatmap.jsx";
 import Legend from "./components/Legend.jsx";
 import ChartInfoButton from "./components/ChartInfoButton.jsx";
 import Tooltip from "./components/Tooltip.jsx";
+import WeekRangeSlider from "./components/WeekRangeSlider.jsx";
 import {
   METRIC_OPTIONS,
   VIRUS_OPTIONS,
@@ -65,6 +66,9 @@ export default function App() {
   const [userWeekRange, setUserWeekRange] = useState(/** @type {[number, number] | null} */ (null));
   const [selectedProvince, setSelectedProvince] = useState(/** @type {string | null} */ (null));
 
+  /** Province currently hovered on the map (drives detail panel + floating tooltip). */
+  const [hoveredProvince, setHoveredProvince] = useState(/** @type {string | null} */ (null));
+
   const [mapTip, setMapTip] = useState(
     /** @type {null | { x: number, y: number, province: string }} */ (null)
   );
@@ -81,7 +85,7 @@ export default function App() {
   const [tourPendingNavigateHome, setTourPendingNavigateHome] = useState(false);
 
   /** Choropleth week animation: steps one week at a time through the selected range. */
-  const [mapPlayback, setMapPlayback] = useState({ active: false, index: 0 });
+  const [mapPlayback, setMapPlayback] = useState({ active: false, paused: false, index: 0 });
 
   /** Temporal trend: line chart vs grouped bar chart. */
   const [trendChartMode, setTrendChartMode] = useState(
@@ -171,7 +175,7 @@ export default function App() {
 
   const choroplethForMap = useMemo(() => {
     if (weeksInRange.length === 0) return new Map();
-    if (playbackRunning) {
+    if (playbackRunning || mapPlayback.paused) {
       const wk = weeksInRange[playbackIndex];
       return sumMetricByProvinceOverWeeks(
         data.agg,
@@ -183,6 +187,7 @@ export default function App() {
     return data.choroplethByProvince;
   }, [
     playbackRunning,
+    mapPlayback.paused,
     playbackIndex,
     weeksInRange,
     data.agg,
@@ -200,7 +205,7 @@ export default function App() {
         positivity: new Map(),
       };
     }
-    const weekSlice = playbackRunning
+    const weekSlice = (playbackRunning || mapPlayback.paused)
       ? [weeksInRange[playbackIndex]]
       : weeksInRange;
     return {
@@ -225,6 +230,7 @@ export default function App() {
     };
   }, [
     playbackRunning,
+    mapPlayback.paused,
     playbackIndex,
     weeksInRange,
     data.agg,
@@ -319,15 +325,14 @@ export default function App() {
       : "Same yellow–orange–red ramp as the map; weekly cell max differs from map range totals.";
 
   const mapPanelMetricNote = playbackRunning
-    ? "Map shows one week at a time while playing (same units as when paused over the full range)."
-    : "Map values total the metric over all selected weeks (one colour per province).";
+    ? "Animating week by week — pause to freeze the map at the current week."
+    : mapPlayback.paused
+      ? `Paused at week ${playbackWeekLabel}. Press Play to continue, or Reset to restore the full range.`
+      : "Map totals the selected metric over all weeks in range.";
 
-  const mapDetailProvince = mapTip?.province ?? selectedProvince;
-
-  const heatmapPanelMetricNote =
-    selectedMetric === "positivity"
-      ? "Each cell is one province in one week; colours match the choropleth legend (same ramp and % scale)."
-      : "Each cell is one province in one week; same colour ramp as the map, with a weekly max (map uses range totals).";
+  const playbackWeek = (playbackRunning || mapPlayback.paused) && weeksInRange.length > 0
+    ? weeksInRange[playbackIndex]
+    : null;
 
   const countMetrics = selectedMetric === "positives" || selectedMetric === "tests";
   const compareBarCount = comparePanelOpen ? compareCheckedIds.length : 0;
@@ -447,8 +452,21 @@ export default function App() {
     );
   }, [selectedVirus]);
 
+  /** Clear all floating tooltips and hover state when the user scrolls. */
+  useEffect(() => {
+    const clearAll = () => {
+      setMapTip(null);
+      setCellTip(null);
+      setTrendTip(null);
+      setHoveredProvince(null);
+    };
+    window.addEventListener("scroll", clearAll, { passive: true });
+    return () => window.removeEventListener("scroll", clearAll);
+  }, []);
+
   const onMapHover = useCallback((payload) => {
     setMapTip(payload);
+    setHoveredProvince(payload?.province ?? null);
   }, []);
 
   const onCellHover = useCallback((payload) => {
@@ -462,6 +480,7 @@ export default function App() {
   const handleReset = useCallback(() => {
     setSelectedProvince(null);
     setUserWeekRange(null);
+    setMapPlayback({ active: false, paused: false, index: 0 });
   }, []);
 
   const handleMapHeatmapSplitPointerDown = useCallback(
@@ -572,21 +591,6 @@ export default function App() {
   }, []);
 
   const loadError = data.loadState.status === "error" && data.loadState.error;
-  const activeVirusLabel =
-    VIRUS_OPTIONS.find((v) => v.id === selectedVirus)?.label ?? selectedVirus;
-  const rowCount = data.loadState.rawRows?.length ?? 0;
-  const statusMessage =
-    data.loadState.status === "ready"
-      ? `Data loaded — ${d3.format(",")(rowCount)} rows · ${data.provinceList.length} provinces · ${VIRUS_OPTIONS.length} viruses · ${weekKeysSorted.length} weeks`
-      : data.loadState.status === "error"
-        ? "Data failed to load"
-        : "Loading surveillance data…";
-  const statusClass = data.loadState.status === "ready" ? "ready" : data.loadState.status === "error" ? "error" : "loading";
-
-  const wkCount = weekKeysSorted.length;
-  const wkMaxIdx = Math.max(0, wkCount - 1);
-  const wkStartLabel = wkCount > 0 ? (weekKeysSorted[weekRangeIndices[0]] ?? "—") : "—";
-  const wkEndLabel   = wkCount > 0 ? (weekKeysSorted[weekRangeIndices[1]] ?? "—") : "—";
 
   return (
     <div className="app">
@@ -606,24 +610,38 @@ export default function App() {
         }}
       />
 
-      <header className="site-header" data-tour="app-header">
-        <div className="header-inner">
-          <div className="header-title">
+      <header className="app-header" data-tour="app-header">
+        <div className="app-header-top">
+          <div className="app-header-title">
             <h1>Canadian Respiratory Virus Surveillance</h1>
             <p className="subtitle">2025–26 Season · CS736 Space & Time Visualization Project</p>
           </div>
-          <div className="header-actions">
-            <button
-              type="button"
-              className="btn-tour"
-              onClick={startGuidedTour}
-              aria-label="Start guided tour"
+          <button
+            type="button"
+            className="btn-tour"
+            onClick={startGuidedTour}
+            aria-label="Start guided tour of the dashboard and comparison page"
+          >
+            <svg
+              width="15"
+              height="15"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+              className="btn-tour-icon"
             >
-              ? Tour Guide
-            </button>
-          </div>
+              <circle cx="12" cy="12" r="10" />
+              <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" />
+            </svg>
+            Tour guide
+          </button>
         </div>
       </header>
+
       {loadError && (
         <div className="banner error" role="alert">
           Could not load CSV: {loadError}. Ensure <code>RVD_CurrentWeekTable.csv</code> is in{" "}
@@ -639,86 +657,36 @@ export default function App() {
         </div>
       )}
 
-      <div className="tab-section">
-        <nav className="tab-nav" aria-label="Pages" data-tour="tour-sidebar-nav">
-          <Link
-            to="/"
-            className={`tab-btn${location.pathname === "/" ? " active" : ""}`}
-          >
-            Choropleth Map
-          </Link>
-          <Link
-            to="/compare"
-            className={`tab-btn${location.pathname === "/compare" ? " active" : ""}`}
-          >
-            Province &amp; Virus Comparison
-          </Link>
-        </nav>
-
-        <div className="controls-panel" data-tour="tour-filters-intro" aria-label="Filters">
-
-          <label className="control control-block" data-tour="tour-filter-virus">
-            <span>Virus</span>
-            <select value={selectedVirus} onChange={(e) => setSelectedVirus(e.target.value)}>
-              {VIRUS_OPTIONS.map((v) => (
-                <option key={v.id} value={v.id}>
-                  {v.label}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <label className="control control-block" data-tour="tour-filter-metric">
-            <span>Metric</span>
-            <select value={selectedMetric} onChange={(e) => setSelectedMetric(e.target.value)}>
-              {METRIC_OPTIONS.map((m) => (
-                <option key={m.id} value={m.id}>
-                  {m.label}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <label className="control control-block" data-tour="tour-filter-region">
-            <span>Province</span>
-            <select
-              value={selectedProvince ?? ""}
-              onChange={(e) => setSelectedProvince(e.target.value || null)}
+      <div className="app-body">
+        <aside className="filters-sidebar" aria-label="Data filters">
+          <nav className="sidebar-nav" aria-label="Pages" data-tour="tour-sidebar-nav">
+            <Link
+              to="/"
+              className={`sidebar-nav-link${location.pathname === "/" ? " sidebar-nav-link--active" : ""}`}
             >
-              <option value="">Canada (National)</option>
-              {data.provinceList.map((province) => (
-                <option key={province} value={province}>
-                  {province}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <button
-            type="button"
-            className="btn-secondary btn-reset-block"
-            onClick={handleReset}
-            data-tour="tour-filter-reset"
-          >
-            Reset Filters
-          </button>
-
-          {location.pathname !== "/compare" && (
-            <div className="control control-block matrix-toggle-block" data-tour="tour-matrix-toggle">
-              <label className="matrix-toggle-label">
-                <input
-                  type="checkbox"
-                  checked={showProvinceWeekMatrix}
-                  onChange={(e) => setShowProvinceWeekMatrix(e.target.checked)}
-                />
-                <span>Show Province × Week Matrix</span>
-              </label>
-            </div>
-          )}
-        </div>
-      </div>
-
-      <div className="tab-content">
+              Dashboard
+            </Link>
+            <Link
+              to="/compare"
+              className={`sidebar-nav-link${location.pathname === "/compare" ? " sidebar-nav-link--active" : ""}`}
+            >
+              Province & virus comparison
+            </Link>
+          </nav>
+          <Controls
+            selectedVirus={selectedVirus}
+            onVirus={setSelectedVirus}
+            selectedMetric={selectedMetric}
+            onMetric={setSelectedMetric}
+            selectedProvince={selectedProvince}
+            onProvince={setSelectedProvince}
+            provinceList={data.provinceList}
+            onReset={handleReset}
+            showProvinceWeekMatrix={showProvinceWeekMatrix}
+            onShowProvinceWeekMatrix={setShowProvinceWeekMatrix}
+            comparePage={location.pathname === "/compare"}
+          />
+        </aside>
 
         <main
           className={
@@ -753,7 +721,9 @@ export default function App() {
               <h2>Regional Activity (Choropleth Map)</h2>
               <ChartInfoButton chartId="map" />
             </div>
-            <p className="panel-metric-note">{mapPanelMetricNote}</p>
+            {(playbackRunning || mapPlayback.paused) && (
+              <p className="panel-metric-note">{mapPanelMetricNote}</p>
+            )}
             <div className="map-toolbar">
               <button
                 type="button"
@@ -761,8 +731,8 @@ export default function App() {
                 onClick={() =>
                   setMapPlayback((p) =>
                     p.active
-                      ? { active: false, index: p.index }
-                      : { active: true, index: 0 }
+                      ? { active: false, paused: true, index: p.index }
+                      : { active: true, paused: false, index: p.paused ? p.index : 0 }
                   )
                 }
                 disabled={weeksInRange.length < 2}
@@ -771,23 +741,23 @@ export default function App() {
                 {playbackRunning ? "⏸ Pause" : "▶ Play weeks"}
               </button>
               <span className="map-playback-label" aria-live="polite">
-                {playbackRunning
-                  ? ``
-                  : weeksInRange.length > 0
-                    ? `Range: ${weeksInRange[0]}–${weeksInRange[weeksInRange.length - 1]}`
-                    : "No weeks"}
+                {playbackRunning || mapPlayback.paused ? (
+                  <>
+                    <span className="map-playback-week">{playbackWeekLabel}</span>
+                    <span className="map-playback-progress">
+                      step {playbackIndex + 1} of {weeksInRange.length} weeks in range
+                    </span>
+                  </>
+                ) : weeksInRange.length > 0 ? (
+                  <>
+                    <span className="map-playback-week">{weeksInRange[0]}</span>
+                    <span className="map-playback-progress">to</span>
+                    <span className="map-playback-week">{weeksInRange[weeksInRange.length - 1]}</span>
+                    <span className="map-playback-progress">({weeksInRange.length} weeks)</span>
+                  </>
+                ) : "No weeks"}
               </span>
             </div>
-            {playbackRunning && (
-              <p className="map-week-title" role="status" aria-live="polite">
-                Showing <strong>week {playbackWeekLabel}</strong>
-                <span className="map-week-title-meta">
-                  {" "}
-                  ({playbackIndex + 1} of {weeksInRange.length} in range)
-                </span>
-              </p>
-            )}
-
             <div className="map-layout">
               {data.geo && (
                 <div className="map-stage">
@@ -802,37 +772,71 @@ export default function App() {
                   />
                 </div>
               )}
-              {!showProvinceWeekMatrix && (
               <div className="map-sidebar">
                 <div className="legend-box">
                   <Legend
                     key={`map-legend-${selectedMetric}-${playbackRunning ? "play" : "range"}`}
-                    title={`${metricLabel} (${playbackRunning ? "single week" : "range total"})`}
+                    title={`${metricLabel} — ${playbackRunning ? "single week" : "range total"}`}
                     colorScale={mapColorScale}
                     format={legendFormat}
                     footnote={mapLegendFootnote}
-                    height={sparseTerritoryProvinces.size ? 102 : 96}
+                    height={78}
                   />
                 </div>
                 <div className="detail-panel">
-                  <h3 className="detail-panel-province">
-                    {mapDetailProvince ?? "Hover a province"}
-                  </h3>
-                  {mapDetailProvince && (
-                    <table className="detail-table">
-                      <tbody>
-                        {METRIC_OPTIONS.map((m) => (
-                          <tr key={m.id}>
-                            <td>{m.label}</td>
-                            <td>{formatMetricValueById(m.id, choroplethMapsByMetric[m.id]?.get(mapDetailProvince))}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  )}
+                  {(() => {
+                    const displayProvince = hoveredProvince ?? selectedProvince;
+                    if (!displayProvince) {
+                      return <p className="detail-panel-empty">Hover or click a province on the map to see details.</p>;
+                    }
+                    const isHoverOnly = hoveredProvince && hoveredProvince !== selectedProvince;
+                    return (
+                      <>
+                        <p className={`detail-panel-province${isHoverOnly ? " detail-panel-province--hover" : ""}`}>
+                          {displayProvince}
+                          {isHoverOnly && <span className="detail-panel-hover-badge">hovering</span>}
+                        </p>
+                        <table className="detail-table">
+                          <tbody>
+                            <tr>
+                              <td>Positivity</td>
+                              <td>{formatMetricValueById("positivity", choroplethMapsByMetric.positivity?.get(displayProvince))}</td>
+                            </tr>
+                            <tr>
+                              <td>Positive tests</td>
+                              <td>{formatMetricValueById("positives", choroplethMapsByMetric.positives?.get(displayProvince))}</td>
+                            </tr>
+                            <tr>
+                              <td>Total tests</td>
+                              <td>{formatMetricValueById("tests", choroplethMapsByMetric.tests?.get(displayProvince))}</td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </>
+                    );
+                  })()}
                 </div>
               </div>
-              )}
+            </div>
+            <div className="map-week-slider-wrap" data-tour="tour-filter-week">
+              <div className="map-week-slider-label">
+                <span>Week range</span>
+                {weekKeysSorted.length > 0 && (
+                  <span className="map-week-slider-dates">
+                    {weekKeysSorted[weekRangeIndices[0]]} – {weekKeysSorted[weekRangeIndices[1]]}
+                  </span>
+                )}
+              </div>
+              <WeekRangeSlider
+                min={0}
+                max={Math.max(0, weekKeysSorted.length - 1)}
+                value={[
+                  Math.min(weekRangeIndices[0], Math.max(0, weekKeysSorted.length - 1)),
+                  Math.min(weekRangeIndices[1], Math.max(0, weekKeysSorted.length - 1)),
+                ]}
+                onChange={setUserWeekRange}
+                disabled={weekKeysSorted.length <= 1}
+              />
             </div>
           </section>
 
@@ -856,7 +860,6 @@ export default function App() {
               <h2>Province × Week Matrix</h2>
               <ChartInfoButton chartId="heatmap" />
             </div>
-            <p className="panel-metric-note">{heatmapPanelMetricNote}</p>
             <div className="heatmap-legend-row">
               <Legend
                 key={`heat-legend-${selectedMetric}`}
@@ -873,26 +876,10 @@ export default function App() {
               selectedProvince={selectedProvince}
               onSelectProvince={setSelectedProvince}
               onCellHover={onCellHover}
+              playbackWeek={playbackWeek}
             />
           </section>
           )}
-          </div>
-
-          <div className="week-range-bar">
-            <span className="wrb-label">Week range</span>
-            <span className="wrb-dates">{wkStartLabel} → {wkEndLabel}</span>
-            <div className="wrb-slider">
-              <WeekRangeSlider
-                min={0}
-                max={wkMaxIdx}
-                value={[
-                  Math.min(weekRangeIndices[0], wkMaxIdx),
-                  Math.min(weekRangeIndices[1], wkMaxIdx),
-                ]}
-                onChange={setUserWeekRange}
-                disabled={wkCount === 0 || wkMaxIdx === 0}
-              />
-            </div>
           </div>
 
           <section className="panel" data-tour="panel-trend">
@@ -900,18 +887,6 @@ export default function App() {
               <h2>Temporal Trend</h2>
               <ChartInfoButton chartId="trend" />
             </div>
-            <p className="panel-desc">
-              {comparePanelOpen
-                ? `Comparison mode: each checked virus is a separate line (national aggregate, or province-specific if a region is selected). Map${showProvinceWeekMatrix ? " and heatmap" : ""} still follow the virus chosen in Filters.`
-                : selectedProvince
-                  ? `${selectedProvince} (blue) compared to the national aggregate (grey dashed).`
-                  : `National aggregate (all mapped provinces). Select a province on the map${showProvinceWeekMatrix ? " or heatmap" : ""} for comparison.`}{" "}
-              {selectedMetric === "positivity" &&
-                "Orange dashed line: 5% seasonal epidemic threshold (Canadian surveillance reference). "}
-              {trendChartMode === "bar"
-                ? "Hover bars to see week and values. "
-                : "Hover the chart to see week and values."}
-            </p>
             <div
               className="trend-view-toolbar"
               role="group"
@@ -1033,6 +1008,7 @@ export default function App() {
               metricLabel={metricLabel}
               metricId={selectedMetric}
               onTrendHover={onTrendHover}
+              playbackWeek={playbackWeek}
               emptyHint={
                 comparePanelOpen && compareCheckedIds.length === 0
                   ? "Select one or more viruses above (or use Select all)."
@@ -1059,51 +1035,35 @@ export default function App() {
             <Route
               path="/compare"
               element={
-                <>
-                  <CrossProvinceVirusSection
-                    expanded={crossCompareExpanded}
-                    onToggleExpanded={setCrossCompareExpanded}
-                    showCollapseToggle={false}
-                    provinceList={data.provinceList}
-                    selectedProvinces={crossProvinceIds}
-                    onToggleProvince={toggleCrossProvince}
-                    onClearProvinces={() => setCrossProvinceIds([])}
-                    selectedViruses={crossVirusIds}
-                    onToggleVirus={toggleCrossVirus}
-                    onClearViruses={() => setCrossVirusIds([])}
-                    onUseMapProvince={onUseMapProvinceForCross}
-                    onUseFilterVirus={onUseFilterVirusForCross}
-                    hasMapProvince={!!selectedProvince}
-                    filterVirusId={selectedVirus}
-                    panels={crossComparePanels}
-                    selectionTooLarge={crossCompareSelectionTooLarge}
-                    maxProvinces={MAX_CROSS_PROVINCES}
-                    maxVirusPanels={MAX_CROSS_VIRUS_PANELS}
-                    chartMode={crossCompareChartMode}
-                    onChartMode={setCrossCompareChartMode}
-                    metricLabel={metricLabel}
-                    metricId={selectedMetric}
-                    onTrendHover={onTrendHover}
-                    weeksInRangeLength={weeksInRange.length}
-                  />
-
-                  <div className="week-range-bar week-range-bar--compare">
-                    <span className="wrb-label">Week range</span>
-                    <span className="wrb-dates">{wkStartLabel} → {wkEndLabel}</span>
-                    <div className="wrb-slider">
-                      <WeekRangeSlider
-                        min={0}
-                        max={wkMaxIdx}
-                        value={[
-                          Math.min(weekRangeIndices[0], wkMaxIdx),
-                          Math.min(weekRangeIndices[1], wkMaxIdx),
-                        ]}
-                        onChange={setUserWeekRange}
-                        disabled={wkCount === 0 || wkMaxIdx === 0}
-                      />
-                    </div>
-                  </div>
-                </>
+                <CrossProvinceVirusSection
+                  expanded={crossCompareExpanded}
+                  onToggleExpanded={setCrossCompareExpanded}
+                  showCollapseToggle={false}
+                  provinceList={data.provinceList}
+                  selectedProvinces={crossProvinceIds}
+                  onToggleProvince={toggleCrossProvince}
+                  onClearProvinces={() => setCrossProvinceIds([])}
+                  selectedViruses={crossVirusIds}
+                  onToggleVirus={toggleCrossVirus}
+                  onClearViruses={() => setCrossVirusIds([])}
+                  onUseMapProvince={onUseMapProvinceForCross}
+                  onUseFilterVirus={onUseFilterVirusForCross}
+                  hasMapProvince={!!selectedProvince}
+                  filterVirusId={selectedVirus}
+                  panels={crossComparePanels}
+                  selectionTooLarge={crossCompareSelectionTooLarge}
+                  maxProvinces={MAX_CROSS_PROVINCES}
+                  maxVirusPanels={MAX_CROSS_VIRUS_PANELS}
+                  chartMode={crossCompareChartMode}
+                  onChartMode={setCrossCompareChartMode}
+                  metricLabel={metricLabel}
+                  metricId={selectedMetric}
+                  onTrendHover={onTrendHover}
+                  weeksInRangeLength={weeksInRange.length}
+                  weekKeysSorted={weekKeysSorted}
+                  weekRangeIndices={weekRangeIndices}
+                  onWeekRangeIndices={setUserWeekRange}
+                />
               }
             />
             <Route path="*" element={<Navigate to="/" replace />} />
@@ -1188,18 +1148,18 @@ export default function App() {
         )}
       </Tooltip>
 
-      <footer className="site-footer">
+      <footer className="app-footer">
         <p>
           Data used for this visualization are from the Canadian respiratory virus surveillance
           program. Source:{" "}
-            <a
-              href="https://health-infobase.canada.ca/respiratory-virus-surveillance/explore.html"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Explore the data — Canadian respiratory virus surveillance report (Health Infobase)
-            </a>
-            . The data year used is 2025–26.
+          <a
+            href="https://health-infobase.canada.ca/respiratory-virus-surveillance/explore.html"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Explore the data — Canadian respiratory virus surveillance report (Health Infobase)
+          </a>
+          . The data year used is 2025–26.
         </p>
       </footer>
     </div>
