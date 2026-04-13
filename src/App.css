@@ -1441,6 +1441,44 @@
   color: #64748b;
 }
 
+/* Map-only layout: centre the map panel with breathing room on wide screens */
+.dashboard-map-row--map-only .panel-map {
+  max-width: 860px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Week range slider placed inside the map panel */
+.map-week-slider-wrap {
+  margin-top: 0.85rem;
+  padding: 0.55rem 0.65rem 0.45rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+}
+
+.map-week-slider-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--text-heading);
+  margin-bottom: 0.3rem;
+}
+
+.map-week-slider-dates {
+  font-weight: 400;
+  color: var(--text-body);
+  font-size: 0.82rem;
+}
+
+.map-week-slider-wrap .week-range-slider {
+  margin-top: 0;
+  padding-top: 0.05rem;
+  padding-bottom: 0.05rem;
+}
+
 .tt-title {
   font-weight: 700;
   color: var(--text-heading);

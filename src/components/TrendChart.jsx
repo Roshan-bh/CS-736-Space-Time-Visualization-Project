@@ -102,6 +102,8 @@ export default function TrendChart({
   metricLabel,
   metricId,
   onTrendHover,
+  /** Week key string to draw a static playback cursor (null = none). */
+  playbackWeek = null,
   emptyHint = "No data in this range.",
 }) {
   const svgRef = useRef(null);
@@ -474,6 +476,19 @@ export default function TrendChart({
         .attr("fill", AXIS_Y_METRIC_FILL)
         .text(metricLabel);
 
+      if (playbackWeek && x0(playbackWeek) !== undefined) {
+        const cx = (x0(playbackWeek) ?? 0) + x0.bandwidth() / 2;
+        g.append("line")
+          .attr("class", "trend-playback-cursor")
+          .attr("x1", cx).attr("x2", cx)
+          .attr("y1", 0).attr("y2", plotBottom)
+          .attr("stroke", "#3b82f6")
+          .attr("stroke-width", 1.5)
+          .attr("stroke-dasharray", "4 3")
+          .attr("opacity", 0.7)
+          .attr("pointer-events", "none");
+      }
+
       focus.raise();
       overlay.raise();
 
@@ -722,6 +737,19 @@ export default function TrendChart({
       .attr("fill", AXIS_Y_METRIC_FILL)
       .text(metricLabel);
 
+    if (playbackWeek && xScale(playbackWeek) !== undefined) {
+      const cx = xScale(playbackWeek);
+      g.append("line")
+        .attr("class", "trend-playback-cursor")
+        .attr("x1", cx).attr("x2", cx)
+        .attr("y1", 0).attr("y2", plotBottom)
+        .attr("stroke", "#3b82f6")
+        .attr("stroke-width", 1.5)
+        .attr("stroke-dasharray", "4 3")
+        .attr("opacity", 0.7)
+        .attr("pointer-events", "none");
+    }
+
     focus.raise();
     overlay.raise();
   }, [
@@ -738,6 +766,7 @@ export default function TrendChart({
     compactSize,
     chartH,
     margin,
+    playbackWeek,
   ]);
 
   const isBar = chartMode === "bar";

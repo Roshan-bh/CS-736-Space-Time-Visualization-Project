@@ -46,6 +46,7 @@ export default function Heatmap({
   selectedProvince,
   onSelectProvince,
   onCellHover,
+  playbackWeek = null,
 }) {
   const svgRef = useRef(null);
   const [sortBy, setSortBy] = useState("geo");
@@ -220,6 +221,19 @@ export default function Heatmap({
       })
       .on("mouseleave", () => onCellHover?.(null));
 
+    if (playbackWeek && xScale(playbackWeek) !== undefined) {
+      g.append("rect")
+        .attr("class", "heatmap-playback-col")
+        .attr("x", xScale(playbackWeek))
+        .attr("y", 0)
+        .attr("width", xScale.bandwidth())
+        .attr("height", gridBottom)
+        .attr("fill", "rgba(59, 130, 246, 0.15)")
+        .attr("stroke", "rgba(59, 130, 246, 0.5)")
+        .attr("stroke-width", 1)
+        .attr("pointer-events", "none");
+    }
+
     g.selectAll(".row-label")
       .data(rowOrder)
       .join("text")
@@ -301,6 +315,7 @@ export default function Heatmap({
     selectedProvince,
     onSelectProvince,
     onCellHover,
+    playbackWeek,
   ]);
 
   return (

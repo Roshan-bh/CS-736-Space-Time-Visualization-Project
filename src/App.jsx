@@ -14,6 +14,7 @@ import Heatmap from "./components/Heatmap.jsx";
 import Legend from "./components/Legend.jsx";
 import ChartInfoButton from "./components/ChartInfoButton.jsx";
 import Tooltip from "./components/Tooltip.jsx";
+import WeekRangeSlider from "./components/WeekRangeSlider.jsx";
 import {
   METRIC_OPTIONS,
   VIRUS_OPTIONS,
@@ -81,7 +82,7 @@ export default function App() {
   const [tourPendingNavigateHome, setTourPendingNavigateHome] = useState(false);
 
   /** Choropleth week animation: steps one week at a time through the selected range. */
-  const [mapPlayback, setMapPlayback] = useState({ active: false, index: 0 });
+  const [mapPlayback, setMapPlayback] = useState({ active: false, paused: false, index: 0 });
 
   /** Temporal trend: line chart vs grouped bar chart. */
   const [trendChartMode, setTrendChartMode] = useState(
@@ -171,7 +172,7 @@ export default function App() {
 
   const choroplethForMap = useMemo(() => {
     if (weeksInRange.length === 0) return new Map();
-    if (playbackRunning) {
+    if (playbackRunning || mapPlayback.paused) {
       const wk = weeksInRange[playbackIndex];
       return sumMetricByProvinceOverWeeks(
         data.agg,
@@ -183,6 +184,7 @@ export default function App() {
     return data.choroplethByProvince;
   }, [
     playbackRunning,
+    mapPlayback.paused,
     playbackIndex,
     weeksInRange,
     data.agg,
@@ -200,7 +202,7 @@ export default function App() {
         positivity: new Map(),
       };
     }
-    const weekSlice = playbackRunning
+    const weekSlice = (playbackRunning || mapPlayback.paused)
       ? [weeksInRange[playbackIndex]]
       : weeksInRange;
     return {
@@ -225,6 +227,7 @@ export default function App() {
     };
   }, [
     playbackRunning,
+    mapPlayback.paused,
     playbackIndex,
     weeksInRange,
     data.agg,
@@ -319,13 +322,14 @@ export default function App() {
       : "Same yellow–orange–red ramp as the map; weekly cell max differs from map range totals.";
 
   const mapPanelMetricNote = playbackRunning
-    ? "Map shows one week at a time while playing (same units as when paused over the full range)."
-    : "Map values total the metric over all selected weeks (one colour per province).";
+    ? "Animating week by week — pause to freeze the map at the current week."
+    : mapPlayback.paused
+      ? `Paused at week ${playbackWeekLabel}. Press Play to continue, or Reset to restore the full range.`
+      : "Map totals the selected metric over all weeks in range.";
 
-  const heatmapPanelMetricNote =
-    selectedMetric === "positivity"
-      ? "Each cell is one province in one week; colours match the choropleth legend (same ramp and % scale)."
-      : "Each cell is one province in one week; same colour ramp as the map, with a weekly max (map uses range totals).";
+  const playbackWeek = (playbackRunning || mapPlayback.paused) && weeksInRange.length > 0
+    ? weeksInRange[playbackIndex]
+    : null;
 
   const countMetrics = selectedMetric === "positives" || selectedMetric === "tests";
   const compareBarCount = comparePanelOpen ? compareCheckedIds.length : 0;
@@ -460,6 +464,7 @@ export default function App() {
   const handleReset = useCallback(() => {
     setSelectedProvince(null);
     setUserWeekRange(null);
+    setMapPlayback({ active: false, paused: false, index: 0 });
   }, []);
 
   const handleMapHeatmapSplitPointerDown = useCallback(
@@ -706,8 +711,8 @@ export default function App() {
                 onClick={() =>
                   setMapPlayback((p) =>
                     p.active
-                      ? { active: false, index: p.index }
-                      : { active: true, index: 0 }
+                      ? { active: false, paused: true, index: p.index }
+                      : { active: true, paused: false, index: p.paused ? p.index : 0 }
                   )
                 }
                 disabled={weeksInRange.length < 2}
@@ -716,10 +721,10 @@ export default function App() {
                 {playbackRunning ? "⏸ Pause" : "▶ Play weeks"}
               </button>
               <span className="map-playback-label" aria-live="polite">
-                {playbackRunning
-                  ? ``
+                {playbackRunning || mapPlayback.paused
+                  ? `Week ${playbackWeekLabel} (${playbackIndex + 1}/${weeksInRange.length})`
                   : weeksInRange.length > 0
-                    ? `Range: ${weeksInRange[0]}–${weeksInRange[weeksInRange.length - 1]}`
+                    ? `${weeksInRange[0]} – ${weeksInRange[weeksInRange.length - 1]}`
                     : "No weeks"}
               </span>
             </div>
@@ -733,12 +738,12 @@ export default function App() {
                 height={sparseTerritoryProvinces.size ? 102 : 96}
               />
             </div>
-            {playbackRunning && (
+            {(playbackRunning || mapPlayback.paused) && (
               <p className="map-week-title" role="status" aria-live="polite">
-                Showing <strong>week {playbackWeekLabel}</strong>
+                {playbackRunning ? "Playing" : "Paused"}:{" "}
+                <strong>week {playbackWeekLabel}</strong>
                 <span className="map-week-title-meta">
-                  {" "}
-                  ({playbackIndex + 1} of {weeksInRange.length} in range)
+                  {" "}({playbackIndex + 1} of {weeksInRange.length} in range)
                 </span>
               </p>
             )}
@@ -763,6 +768,26 @@ export default function App() {
                 />
               </div>
             )}
+            <div className="map-week-slider-wrap" data-tour="tour-filter-week">
+              <div className="map-week-slider-label">
+                <span>Week range</span>
+                {weekKeysSorted.length > 0 && (
+                  <span className="map-week-slider-dates">
+                    {weekKeysSorted[weekRangeIndices[0]]} – {weekKeysSorted[weekRangeIndices[1]]}
+                  </span>
+                )}
+              </div>
+              <WeekRangeSlider
+                min={0}
+                max={Math.max(0, weekKeysSorted.length - 1)}
+                value={[
+                  Math.min(weekRangeIndices[0], Math.max(0, weekKeysSorted.length - 1)),
+                  Math.min(weekRangeIndices[1], Math.max(0, weekKeysSorted.length - 1)),
+                ]}
+                onChange={setUserWeekRange}
+                disabled={weekKeysSorted.length <= 1}
+              />
+            </div>
           </section>
 
           {showProvinceWeekMatrix && (
@@ -801,6 +826,7 @@ export default function App() {
               selectedProvince={selectedProvince}
               onSelectProvince={setSelectedProvince}
               onCellHover={onCellHover}
+              playbackWeek={playbackWeek}
             />
           </section>
           )}
@@ -932,6 +958,7 @@ export default function App() {
               metricLabel={metricLabel}
               metricId={selectedMetric}
               onTrendHover={onTrendHover}
+              playbackWeek={playbackWeek}
               emptyHint={
                 comparePanelOpen && compareCheckedIds.length === 0
                   ? "Select one or more viruses above (or use Select all)."

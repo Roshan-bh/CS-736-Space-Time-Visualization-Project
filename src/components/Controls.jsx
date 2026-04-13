@@ -61,7 +61,7 @@ export default function Controls({
         </select>
       </label>
 
-      <div className="control control-block week-range-block" data-tour="tour-filter-week">
+      {comparePage && <div className="control control-block week-range-block">
         <span>
           Week range
           {n > 0 && (
@@ -82,7 +82,7 @@ export default function Controls({
           onChange={onWeekRangeIndices}
           disabled={n === 0 || maxIdx === 0}
         />
-      </div>
+      </div>}
 
       {!comparePage && (
         <button
