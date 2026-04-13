@@ -45,10 +45,6 @@ export default function CrossProvinceVirusSection({
         <h2>Province & Virus Comparisons</h2>
         <ChartInfoButton chartId="crossCompare" />
       </div>
-      <p className="panel-desc">
-        One chart per virus; each chart compares the selected provinces on the same metric and week range
-        as Filters. Switch between line and bar views below.
-      </p>
       {showCollapseToggle && (
         <button
           type="button"

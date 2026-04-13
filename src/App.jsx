@@ -601,11 +601,6 @@ export default function App() {
             Take a tour
           </button>
         </div>
-        <p className="subtitle">
-          {location.pathname === "/compare"
-            ? "Compare multiple provinces and viruses using the same metric and week range as in Filters. Add the map-selected province with + Map selection after choosing a region on the Dashboard map."
-            : "Linked views for surveillance analysts: regional patterns (map), temporal trends (line chart), and province–week comparison (heatmap). Open Province & virus comparison above for multi-region charts."}
-        </p>
       </header>
 
       {loadError && (
@@ -689,11 +684,6 @@ export default function App() {
               <ChartInfoButton chartId="map" />
             </div>
             <p className="panel-metric-note">{mapPanelMetricNote}</p>
-            <p className="panel-desc">
-              {playbackRunning
-                ? `Animation: one week at a time (${playbackWeekLabel}). Pause to explore a static map again.`
-                : "Values aggregate the selected metric over the week range (or use Play to step through weeks). Click a province to compare its trend to the national line. Scroll or pinch to zoom, drag to pan; double-click the map to reset the view."}
-            </p>
             <div className="map-toolbar">
               <button
                 type="button"
@@ -811,18 +801,6 @@ export default function App() {
               <h2>Temporal Trend</h2>
               <ChartInfoButton chartId="trend" />
             </div>
-            <p className="panel-desc">
-              {comparePanelOpen
-                ? `Comparison mode: each checked virus is a separate line (national aggregate, or province-specific if a region is selected). Map${showProvinceWeekMatrix ? " and heatmap" : ""} still follow the virus chosen in Filters.`
-                : selectedProvince
-                  ? `${selectedProvince} (blue) compared to the national aggregate (grey dashed).`
-                  : `National aggregate (all mapped provinces). Select a province on the map${showProvinceWeekMatrix ? " or heatmap" : ""} for comparison.`}{" "}
-              {selectedMetric === "positivity" &&
-                "Orange dashed line: 5% seasonal epidemic threshold (Canadian surveillance reference). "}
-              {trendChartMode === "bar"
-                ? "Hover bars to see week and values. "
-                : "Hover the chart to see week and values."}
-            </p>
             <div
               className="trend-view-toolbar"
               role="group"
