@@ -156,8 +156,8 @@ export default function CanadaMap({
         bboxW,
         bboxH,
         ok: Number.isFinite(c[0]) && Number.isFinite(c[1])
-          && bboxW > estTextW
-          && bboxH > labelFont * 1.1,
+          && bboxW > estTextW * 0.8
+          && bboxH > labelFont * 0.6,
       };
     });
     g.append("g")
@@ -206,7 +206,7 @@ export default function CanadaMap({
           .attr("opacity", (d) => {
             if (!d.ok) return 0;
             const estW = d.abbrev.length * curFont * 0.75;
-            return (d.bboxW * k > estW && d.bboxH * k > curFont * 1.1) ? 1 : 0;
+            return (d.bboxW * k > estW * 0.8 && d.bboxH * k > curFont * 0.6) ? 1 : 0;
           });
       });
 

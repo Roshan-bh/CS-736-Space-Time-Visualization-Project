@@ -31,11 +31,11 @@ export default function Legend({
     const margin = {
       top: 14,
       right: 12,
-      bottom: footnote ? 34 : 22,
+      bottom: 22,
       left: 12,
     };
     const innerW = width - margin.left - margin.right;
-    const svgHeight = footnote ? Math.max(height, 96) : height;
+    const svgHeight = height;
 
     const g = svg
       .attr("viewBox", `0 0 ${width} ${svgHeight}`)
@@ -104,19 +104,16 @@ export default function Legend({
           .attr("font-size", 11)
       );
 
-    if (footnote) {
-      g.append("text")
-        .attr("x", 0)
-        .attr("y", titleBlock + barH + 28)
-        .attr("fill", LEGEND_TICK_FILL)
-        .attr("font-size", 10)
-        .attr("font-weight", "500")
-        .attr("dominant-baseline", "hanging")
-        .text(footnote);
-    }
   }, [colorScale, width, height, title, format, footnote]);
 
   if (!colorScale) return null;
 
-  return <svg ref={ref} className="legend-svg" aria-hidden />;
+  return (
+    <>
+      <svg ref={ref} className="legend-svg" aria-hidden />
+      {footnote && (
+        <p className="legend-footnote">{footnote}</p>
+      )}
+    </>
+  );
 }

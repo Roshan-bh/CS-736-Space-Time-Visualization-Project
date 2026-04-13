@@ -66,6 +66,9 @@ export default function App() {
   const [userWeekRange, setUserWeekRange] = useState(/** @type {[number, number] | null} */ (null));
   const [selectedProvince, setSelectedProvince] = useState(/** @type {string | null} */ (null));
 
+  /** Province currently hovered on the map (drives detail panel + floating tooltip). */
+  const [hoveredProvince, setHoveredProvince] = useState(/** @type {string | null} */ (null));
+
   const [mapTip, setMapTip] = useState(
     /** @type {null | { x: number, y: number, province: string }} */ (null)
   );
@@ -449,12 +452,13 @@ export default function App() {
     );
   }, [selectedVirus]);
 
-  /** Clear all floating tooltips when the user scrolls — prevents stale fixed-position tips. */
+  /** Clear all floating tooltips and hover state when the user scrolls. */
   useEffect(() => {
     const clearAll = () => {
       setMapTip(null);
       setCellTip(null);
       setTrendTip(null);
+      setHoveredProvince(null);
     };
     window.addEventListener("scroll", clearAll, { passive: true });
     return () => window.removeEventListener("scroll", clearAll);
@@ -462,6 +466,7 @@ export default function App() {
 
   const onMapHover = useCallback((payload) => {
     setMapTip(payload);
+    setHoveredProvince(payload?.province ?? null);
   }, []);
 
   const onCellHover = useCallback((payload) => {
@@ -780,33 +785,41 @@ export default function App() {
                     colorScale={mapColorScale}
                     format={legendFormat}
                     footnote={mapLegendFootnote}
-                    height={sparseTerritoryProvinces.size ? 102 : 96}
+                    height={78}
                   />
                 </div>
                 <div className="detail-panel">
-                  {selectedProvince ? (
-                    <>
-                      <p className="detail-panel-province">{selectedProvince}</p>
-                      <table className="detail-table">
-                        <tbody>
-                          <tr>
-                            <td>Positivity</td>
-                            <td>{formatMetricValueById("positivity", choroplethMapsByMetric.positivity?.get(selectedProvince))}</td>
-                          </tr>
-                          <tr>
-                            <td>Positive tests</td>
-                            <td>{formatMetricValueById("positives", choroplethMapsByMetric.positives?.get(selectedProvince))}</td>
-                          </tr>
-                          <tr>
-                            <td>Total tests</td>
-                            <td>{formatMetricValueById("tests", choroplethMapsByMetric.tests?.get(selectedProvince))}</td>
-                          </tr>
-                        </tbody>
-                      </table>
-                    </>
-                  ) : (
-                    <p className="detail-panel-empty">Click a province on the map or use the Province filter to see details.</p>
-                  )}
+                  {(() => {
+                    const displayProvince = hoveredProvince ?? selectedProvince;
+                    if (!displayProvince) {
+                      return <p className="detail-panel-empty">Hover or click a province on the map to see details.</p>;
+                    }
+                    const isHoverOnly = hoveredProvince && hoveredProvince !== selectedProvince;
+                    return (
+                      <>
+                        <p className={`detail-panel-province${isHoverOnly ? " detail-panel-province--hover" : ""}`}>
+                          {displayProvince}
+                          {isHoverOnly && <span className="detail-panel-hover-badge">hovering</span>}
+                        </p>
+                        <table className="detail-table">
+                          <tbody>
+                            <tr>
+                              <td>Positivity</td>
+                              <td>{formatMetricValueById("positivity", choroplethMapsByMetric.positivity?.get(displayProvince))}</td>
+                            </tr>
+                            <tr>
+                              <td>Positive tests</td>
+                              <td>{formatMetricValueById("positives", choroplethMapsByMetric.positives?.get(displayProvince))}</td>
+                            </tr>
+                            <tr>
+                              <td>Total tests</td>
+                              <td>{formatMetricValueById("tests", choroplethMapsByMetric.tests?.get(displayProvince))}</td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </>
+                    );
+                  })()}
                 </div>
               </div>
             </div>

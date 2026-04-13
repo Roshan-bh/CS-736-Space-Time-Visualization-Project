@@ -911,6 +911,14 @@
   overflow: visible;
 }
 
+.legend-footnote {
+  margin: 0.35rem 0 0;
+  font-size: 0.72rem;
+  color: #64748b;
+  line-height: 1.45;
+  word-break: break-word;
+}
+
 .map-week-title {
   margin: 0 0 0.5rem;
   padding: 0.4rem 0.65rem;
@@ -1521,10 +1529,29 @@
 }
 
 .detail-panel-province {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
   color: #1d4ed8;
   font-size: 0.88rem;
   font-weight: 700;
   margin: 0 0 0.55rem;
+}
+
+.detail-panel-province--hover {
+  color: #0369a1;
+}
+
+.detail-panel-hover-badge {
+  font-size: 0.65rem;
+  font-weight: 500;
+  color: #0369a1;
+  background: #e0f2fe;
+  border: 1px solid #bae6fd;
+  border-radius: 4px;
+  padding: 1px 5px;
+  white-space: nowrap;
 }
 
 .detail-panel-empty {
