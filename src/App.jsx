@@ -449,6 +449,17 @@ export default function App() {
     );
   }, [selectedVirus]);
 
+  /** Clear all floating tooltips when the user scrolls — prevents stale fixed-position tips. */
+  useEffect(() => {
+    const clearAll = () => {
+      setMapTip(null);
+      setCellTip(null);
+      setTrendTip(null);
+    };
+    window.addEventListener("scroll", clearAll, { passive: true });
+    return () => window.removeEventListener("scroll", clearAll);
+  }, []);
+
   const onMapHover = useCallback((payload) => {
     setMapTip(payload);
   }, []);

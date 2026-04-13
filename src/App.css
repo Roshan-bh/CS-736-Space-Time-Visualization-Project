@@ -13,12 +13,12 @@
   --text-heading: #111827;
   --accent-soft: #f3f4f6;
   --app-bg: #eef0f3;
-  /* Dark filter toolbar */
-  --filter-bg: #1e293b;
-  --filter-border: #334155;
-  --filter-text: #cbd5e1;
-  --filter-heading: #f1f5f9;
-  --filter-active: #38bdf8;
+  /* Filter toolbar (light, matches page background) */
+  --filter-bg: #ffffff;
+  --filter-border: #e2e8f0;
+  --filter-text: #374151;
+  --filter-heading: #111827;
+  --filter-active: #2563eb;
   --filter-muted: #64748b;
 }
 
@@ -55,7 +55,7 @@
   z-index: 50;
   background: var(--filter-bg);
   border-bottom: 1px solid var(--filter-border);
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.22);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   margin-left: -1.25rem;
   margin-right: -1.25rem;
   padding: 0 1.25rem;
@@ -73,7 +73,7 @@
 .sidebar-nav-link {
   font-size: 0.88rem;
   font-weight: 600;
-  color: var(--filter-text);
+  color: var(--filter-muted);
   text-decoration: none;
   padding: 0.5rem 0.9rem;
   border-radius: 0;
@@ -86,9 +86,9 @@
 }
 
 .sidebar-nav-link:hover {
-  background: rgba(255, 255, 255, 0.07);
+  background: #f1f5f9;
   color: var(--filter-heading);
-  border-bottom-color: var(--filter-muted);
+  border-bottom-color: #94a3b8;
 }
 
 .sidebar-nav-link:focus-visible {
@@ -97,8 +97,8 @@
 }
 
 .sidebar-nav-link--active {
-  background: rgba(255, 255, 255, 0.06);
-  color: var(--filter-heading);
+  background: transparent;
+  color: var(--filter-active);
   border-bottom-color: var(--filter-active);
 }
 
@@ -237,8 +237,8 @@
   min-width: 0;
   padding: 0.35rem 0.5rem;
   border-radius: 4px;
-  border: 1px solid #475569;
-  background: #334155;
+  border: 1px solid #d1d5db;
+  background: #ffffff;
   color: var(--filter-heading);
   font-size: 0.85rem;
 }
@@ -303,17 +303,18 @@
   width: 28px;
   height: 26px;
   padding: 0;
-  border: 1px solid #475569;
+  border: 1px solid #d1d5db;
   border-radius: 5px;
-  background: #334155;
+  background: #f8fafc;
   color: var(--filter-heading);
   cursor: pointer;
   line-height: 0;
 }
 
 .week-range-nudge-btn:hover:not(:disabled) {
-  background: #3f5068;
+  background: #dbeafe;
   border-color: var(--filter-active);
+  color: var(--filter-active);
 }
 
 .week-range-nudge-btn:focus-visible {
@@ -385,8 +386,8 @@
 .btn-reset {
   padding: 0.38rem 0.75rem;
   border-radius: 6px;
-  border: 1px solid #475569;
-  background: #334155;
+  border: 1px solid #d1d5db;
+  background: #f8fafc;
   color: var(--filter-heading);
   font-weight: 600;
   font-size: 0.85rem;
@@ -399,8 +400,9 @@
 }
 
 .btn-reset:hover {
-  background: #3f5068;
+  background: #dbeafe;
   border-color: var(--filter-active);
+  color: var(--filter-active);
 }
 
 .selection-bar {
@@ -1287,6 +1289,11 @@
   max-width: min(320px, 92vw);
   max-height: min(70vh, 28rem);
   overflow-y: auto;
+  transition: opacity 0.12s ease;
+}
+
+.viz-tooltip--hidden {
+  opacity: 0;
 }
 
 .cross-compare-panel .btn-cross-compare-toggle {
@@ -1678,8 +1685,9 @@
   margin-left: -1.25rem;
   margin-right: -1.25rem;
   margin-bottom: -3rem;
-  padding: 0.5rem 1.5rem;
-  background: #1e293b;
+  padding: 0.75rem 1.5rem;
+  background: #f1f5f9;
+  border-top: 1px solid #e2e8f0;
   color: #64748b;
   font-size: 0.75rem;
   line-height: 1.4;
@@ -1692,14 +1700,14 @@
 }
 
 .app-footer a {
-  color: #93c5fd;
+  color: #2563eb;
   font-weight: 600;
   text-decoration: underline;
   text-underline-offset: 2px;
 }
 
 .app-footer a:hover {
-  color: #bfdbfe;
+  color: #1d4ed8;
 }
 
 @media (max-width: 900px) {
