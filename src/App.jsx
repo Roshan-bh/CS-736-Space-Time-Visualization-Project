@@ -721,11 +721,21 @@ export default function App() {
                 {playbackRunning ? "⏸ Pause" : "▶ Play weeks"}
               </button>
               <span className="map-playback-label" aria-live="polite">
-                {playbackRunning || mapPlayback.paused
-                  ? `Week ${playbackWeekLabel} (${playbackIndex + 1}/${weeksInRange.length})`
-                  : weeksInRange.length > 0
-                    ? `${weeksInRange[0]} – ${weeksInRange[weeksInRange.length - 1]}`
-                    : "No weeks"}
+                {playbackRunning || mapPlayback.paused ? (
+                  <>
+                    <span className="map-playback-week">{playbackWeekLabel}</span>
+                    <span className="map-playback-progress">
+                      step {playbackIndex + 1} of {weeksInRange.length} weeks in range
+                    </span>
+                  </>
+                ) : weeksInRange.length > 0 ? (
+                  <>
+                    <span className="map-playback-week">{weeksInRange[0]}</span>
+                    <span className="map-playback-progress">to</span>
+                    <span className="map-playback-week">{weeksInRange[weeksInRange.length - 1]}</span>
+                    <span className="map-playback-progress">({weeksInRange.length} weeks)</span>
+                  </>
+                ) : "No weeks"}
               </span>
             </div>
             <div className="map-legend-row">

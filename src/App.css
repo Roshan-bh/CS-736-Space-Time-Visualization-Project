@@ -861,8 +861,24 @@
 }
 
 .map-playback-label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
   font-size: 0.86rem;
   color: var(--text-body);
+}
+
+.map-playback-week {
+  font-weight: 700;
+  color: var(--text-heading);
+  letter-spacing: 0.01em;
+}
+
+.map-playback-progress {
+  font-size: 0.78rem;
+  color: #64748b;
+  font-weight: 400;
 }
 
 .map-legend-row,
