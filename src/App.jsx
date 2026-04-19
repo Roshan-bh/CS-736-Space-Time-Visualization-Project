@@ -87,16 +87,6 @@ export default function App() {
   /** Choropleth week animation: steps one week at a time through the selected range. */
   const [mapPlayback, setMapPlayback] = useState({ active: false, paused: false, index: 0 });
 
-  /** Temporal trend: line chart vs grouped bar chart. */
-  const [trendChartMode, setTrendChartMode] = useState(
-    /** @type {'line' | 'bar'} */ ("line")
-  );
-
-  /** Multi-virus bar chart: grouped columns vs stacked (counts only; misleading for %). */
-  const [barLayout, setBarLayout] = useState(
-    /** @type {'grouped' | 'stacked'} */ ("stacked")
-  );
-
   /** Multi-virus lines on the temporal trend (checkboxes). */
   const [comparePanelOpen, setComparePanelOpen] = useState(false);
   const [compareCheckedIds, setCompareCheckedIds] = useState(
@@ -113,10 +103,6 @@ export default function App() {
   const [crossVirusIds, setCrossVirusIds] = useState(
     /** @type {import('./utils/constants.js').VirusId[]} */ (["covid19"])
   );
-  const [crossCompareChartMode, setCrossCompareChartMode] = useState(
-    /** @type {'line' | 'bar'} */ ("line")
-  );
-
   const selectAllCheckboxRef = useRef(/** @type {HTMLInputElement | null} */ (null));
   const mapRowRef = useRef(/** @type {HTMLDivElement | null} */ (null));
 
@@ -333,11 +319,6 @@ export default function App() {
   const playbackWeek = (playbackRunning || mapPlayback.paused) && weeksInRange.length > 0
     ? weeksInRange[playbackIndex]
     : null;
-
-  const countMetrics = selectedMetric === "positives" || selectedMetric === "tests";
-  const compareBarCount = comparePanelOpen ? compareCheckedIds.length : 0;
-  const showBarLayoutToggle =
-    trendChartMode === "bar" && comparePanelOpen && compareBarCount >= 2 && countMetrics;
 
   const trendLines = useMemo(() => {
     const palette = [...d3.schemeTableau10, ...d3.schemeSet2, ...d3.schemeCategory10];
@@ -887,70 +868,6 @@ export default function App() {
               <h2>Temporal Trend</h2>
               <ChartInfoButton chartId="trend" />
             </div>
-            <div
-              className="trend-view-toolbar"
-              role="group"
-              aria-label="Temporal trend chart type"
-            >
-              <span className="trend-view-label">View:</span>
-              <label className="trend-view-option">
-                <input
-                  type="radio"
-                  name="trendChartMode"
-                  value="line"
-                  checked={trendChartMode === "line"}
-                  onChange={() => setTrendChartMode("line")}
-                />
-                Line
-              </label>
-              <label className="trend-view-option">
-                <input
-                  type="radio"
-                  name="trendChartMode"
-                  value="bar"
-                  checked={trendChartMode === "bar"}
-                  onChange={() => setTrendChartMode("bar")}
-                />
-                Bars
-              </label>
-            </div>
-            {showBarLayoutToggle && (
-              <div
-                className="bar-layout-toolbar"
-                role="group"
-                aria-label="Multi-virus bar chart layout"
-              >
-                <span className="bar-layout-label">Multi-virus bars:</span>
-                <label className="bar-layout-option">
-                  <input
-                    type="radio"
-                    name="barLayout"
-                    value="stacked"
-                    checked={barLayout === "stacked"}
-                    onChange={() => setBarLayout("stacked")}
-                  />
-                  Stacked
-                </label>
-                <label className="bar-layout-option">
-                  <input
-                    type="radio"
-                    name="barLayout"
-                    value="grouped"
-                    checked={barLayout === "grouped"}
-                    onChange={() => setBarLayout("grouped")}
-                  />
-                  Grouped
-                </label>
-              </div>
-            )}
-            {trendChartMode === "bar" &&
-              comparePanelOpen &&
-              compareBarCount >= 2 &&
-              selectedMetric === "positivity" && (
-                <p className="bar-layout-hint" role="note">
-                  Positivity is a rate: bars stay grouped. Use count metrics for stacked composition by virus.
-                </p>
-              )}
             <div className="compare-viruses-toolbar" data-tour="tour-trend-compare-viruses">
               <button
                 type="button"
@@ -1002,8 +919,6 @@ export default function App() {
               )}
             </div>
             <TrendChart
-              chartMode={trendChartMode}
-              barLayout={countMetrics ? barLayout : "grouped"}
               lines={trendLines}
               metricLabel={metricLabel}
               metricId={selectedMetric}
@@ -1021,7 +936,6 @@ export default function App() {
               data.compareProvincialVsNational?.length > 0 && (
                 <CompareNationalGrid
                   panels={data.compareProvincialVsNational}
-                  chartMode={trendChartMode}
                   metricLabel={metricLabel}
                   metricId={selectedMetric}
                   selectedProvince={selectedProvince}
@@ -1054,8 +968,6 @@ export default function App() {
                   selectionTooLarge={crossCompareSelectionTooLarge}
                   maxProvinces={MAX_CROSS_PROVINCES}
                   maxVirusPanels={MAX_CROSS_VIRUS_PANELS}
-                  chartMode={crossCompareChartMode}
-                  onChartMode={setCrossCompareChartMode}
                   metricLabel={metricLabel}
                   metricId={selectedMetric}
                   onTrendHover={onTrendHover}

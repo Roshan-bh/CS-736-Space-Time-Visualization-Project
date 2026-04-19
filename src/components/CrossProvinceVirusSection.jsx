@@ -1,6 +1,5 @@
 /**
  * One chart per selected virus; each chart compares all selected provinces.
- * Shared line vs bar mode (grouped bars for multiple provinces).
  */
 
 import TrendChart from "./TrendChart.jsx";
@@ -28,8 +27,6 @@ export default function CrossProvinceVirusSection({
   selectionTooLarge,
   maxProvinces,
   maxVirusPanels,
-  chartMode,
-  onChartMode,
   metricLabel,
   metricId,
   onTrendHover,
@@ -161,36 +158,6 @@ export default function CrossProvinceVirusSection({
             </div>
           </div>
 
-          {hasSelection && weeksInRangeLength > 0 && (
-            <div
-              className="cross-compare-view-toolbar"
-              role="group"
-              aria-label="Province comparison chart type"
-            >
-              <span className="cross-compare-view-label">View:</span>
-              <label className="cross-compare-view-option">
-                <input
-                  type="radio"
-                  name="crossCompareChartMode"
-                  value="line"
-                  checked={chartMode === "line"}
-                  onChange={() => onChartMode("line")}
-                />
-                Line
-              </label>
-              <label className="cross-compare-view-option">
-                <input
-                  type="radio"
-                  name="crossCompareChartMode"
-                  value="bar"
-                  checked={chartMode === "bar"}
-                  onChange={() => onChartMode("bar")}
-                />
-                Bars
-              </label>
-            </div>
-          )}
-
           {!selectionTooLarge &&
             selectedProvinces.length > 0 &&
             selectedViruses.length > 0 &&
@@ -228,8 +195,6 @@ export default function CrossProvinceVirusSection({
                     Provinces: {selectedProvinces.length} · {metricLabel}
                   </p>
                   <TrendChart
-                    chartMode={chartMode}
-                    barLayout="grouped"
                     lines={panel.lines}
                     metricLabel={metricLabel}
                     metricId={metricId}

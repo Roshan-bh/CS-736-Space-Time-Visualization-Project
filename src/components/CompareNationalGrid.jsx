@@ -1,7 +1,6 @@
 /**
  * Small multiples: for each compared virus, national vs selected province.
  * Only rendered when a region is selected (parent gate).
- * Uses the same line/bar mode as the main temporal trend chart.
  */
 
 import { useMemo } from "react";
@@ -12,7 +11,6 @@ import ChartInfoButton from "./ChartInfoButton.jsx";
 /**
  * @param {object} props
  * @param {Array<{ virusId: string, label: string, national: object[], provinceSeries: object[] | null }>} props.panels
- * @param {'line' | 'bar'} props.chartMode
  * @param {string} props.metricLabel
  * @param {string} props.metricId
  * @param {string} props.selectedProvince
@@ -20,7 +18,6 @@ import ChartInfoButton from "./ChartInfoButton.jsx";
  */
 export default function CompareNationalGrid({
   panels,
-  chartMode,
   metricLabel,
   metricId,
   selectedProvince,
@@ -35,15 +32,13 @@ export default function CompareNationalGrid({
         <ChartInfoButton chartId="compareNational" />
       </div>
       <p className="compare-national-desc">
-        National (grey dashed) vs {selectedProvince} (blue) for each pathogen — same view (line or bars) as
-        above.
+        National (grey dashed) vs {selectedProvince} (blue) for each pathogen.
       </p>
       <div className="compare-national-grid" role="list">
         {panels.map((panel) => (
           <CompareNationalCard
             key={panel.virusId}
             panel={panel}
-            chartMode={chartMode}
             metricLabel={metricLabel}
             metricId={metricId}
             selectedProvince={selectedProvince}
@@ -61,7 +56,6 @@ export default function CompareNationalGrid({
  */
 function CompareNationalCard({
   panel,
-  chartMode,
   metricLabel,
   metricId,
   selectedProvince,
@@ -81,7 +75,6 @@ function CompareNationalCard({
       <TrendChart
         compact
         compactSize="xlarge"
-        chartMode={chartMode}
         lines={lines}
         metricLabel={metricLabel}
         metricId={metricId}
