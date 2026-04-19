@@ -168,8 +168,16 @@ export default function CanadaMap({
     const labelFont = Math.max(8, Math.min(13, width / 55));
     /** Minimum font we'll render inside a province before switching to external label. */
     const MIN_LABEL_FONT = 7;
-    /** Gap (px) between province right edge and the external label anchor. */
+    /** Gap (px) between province edge and the external label anchor. */
     const LEADER_PAD = 7;
+
+    /**
+     * NS and PE are always given external leader labels on a national-scale map.
+     * Their shapes are too small/irregular for reliable internal centroid labelling:
+     * NS is a thin peninsula whose geometric centroid lands in water at most zoom
+     * levels; PE is a tiny crescent island. Every Canadian atlas treats them this way.
+     */
+    const ALWAYS_EXTERNAL = new Set(["Nova Scotia", "Prince Edward Island"]);
 
     const labelRows = geo.features.map((feature) => {
       const c = path.centroid(feature);
@@ -181,30 +189,55 @@ export default function CanadaMap({
       const validCentroid = Number.isFinite(c[0]) && Number.isFinite(c[1]);
 
       if (!abbrev || !validCentroid) {
-        return { key: name ?? String(feature), abbrev: "", ok: false, external: false, font: labelFont, cx: -9999, cy: -9999, bboxW: 0, bboxH: 0 };
+        return { key: name ?? String(feature), abbrev: "", ok: false, external: false, font: labelFont, cx: -9999, cy: -9999, bboxW: 0, bboxH: 0, anchor: "middle" };
       }
 
       const estTextW = abbrev.length * labelFont * 0.75;
+      const forceExternal = ALWAYS_EXTERNAL.has(name);
 
-      // Tier 1 — fits internally at the global label font.
-      if (bboxW > estTextW * 0.8 && bboxH > labelFont * 0.6) {
-        return { key: name, cx: c[0], cy: c[1], abbrev, bboxW, bboxH, font: labelFont, ok: true, external: false };
+      // Internal label — only for provinces that are large enough AND not force-external.
+      if (!forceExternal && bboxW > estTextW * 0.8 && bboxH > labelFont * 0.6) {
+        return { key: name, cx: c[0], cy: c[1], abbrev, bboxW, bboxH, font: labelFont, ok: true, external: false, anchor: "middle" };
       }
 
-      // Tier 2 — fits internally at a reduced font (≥ MIN_LABEL_FONT px).
-      const reducedFont = Math.min(
-        bboxW / (abbrev.length * 0.75 * 0.85),
-        bboxH / 0.65
-      );
-      if (reducedFont >= MIN_LABEL_FONT) {
-        return { key: name, cx: c[0], cy: c[1], abbrev, bboxW, bboxH, font: reducedFont, ok: true, external: false };
+      // Reduced internal font (min 7 px) — still not for force-external provinces.
+      if (!forceExternal) {
+        const reducedFont = Math.min(
+          bboxW / (abbrev.length * 0.75 * 0.85),
+          bboxH / 0.65
+        );
+        if (reducedFont >= MIN_LABEL_FONT) {
+          return { key: name, cx: c[0], cy: c[1], abbrev, bboxW, bboxH, font: reducedFont, ok: true, external: false, anchor: "middle" };
+        }
       }
 
-      // Tier 3 — too small for internal label: float to the right with a leader line.
+      // External label — used for force-external provinces (NS, PE) at every width,
+      // and for any province too small to fit an internal label.
+      // Direction priority: right → left → above, whichever keeps the text inside the SVG.
+      const estLabelW = abbrev.length * labelFont * 0.75 + 6;
+      let extX, extY, anchor;
+
+      if (bounds[1][0] + LEADER_PAD + estLabelW <= width) {
+        // Right of the province bounding box
+        extX = bounds[1][0] + LEADER_PAD;
+        extY = c[1];
+        anchor = "start";
+      } else if (bounds[0][0] - LEADER_PAD - estLabelW >= 0) {
+        // Left of the province bounding box
+        extX = bounds[0][0] - LEADER_PAD;
+        extY = c[1];
+        anchor = "end";
+      } else {
+        // Above the province (last resort — clamp x so text stays in viewport)
+        extX = Math.max(estLabelW / 2, Math.min(c[0], width - estLabelW / 2));
+        extY = bounds[0][1] - LEADER_PAD;
+        anchor = "middle";
+      }
+
       return {
         key: name,
-        cx: bounds[1][0] + LEADER_PAD,
-        cy: c[1],
+        cx: extX,
+        cy: extY,
         leaderCx: c[0],
         leaderCy: c[1],
         abbrev,
@@ -213,10 +246,11 @@ export default function CanadaMap({
         font: labelFont,
         ok: true,
         external: true,
+        anchor,
       };
     });
 
-    /* Leader lines + anchor dots for externally-placed labels (e.g. NS, PE). */
+    /* Leader lines + anchor dots for externally-placed labels (NS, PE, etc.). */
     const leadersG = g.append("g")
       .attr("class", "province-leaders")
       .attr("pointer-events", "none");
@@ -227,8 +261,8 @@ export default function CanadaMap({
       .attr("class", "province-leader-line")
       .attr("x1", (r) => r.leaderCx)
       .attr("y1", (r) => r.leaderCy)
-      .attr("x2", (r) => r.cx - 3)
-      .attr("y2", (r) => r.cy)
+      .attr("x2", (r) => r.cx - (r.anchor === "start" ? 3 : r.anchor === "end" ? -3 : 0))
+      .attr("y2", (r) => r.anchor === "middle" ? r.cy + 3 : r.cy)
       .attr("stroke", "#374151")
       .attr("stroke-width", 0.75)
       .attr("stroke-opacity", 0.7);
@@ -255,7 +289,7 @@ export default function CanadaMap({
         r.ok ? `translate(${r.cx},${r.cy})` : "translate(-9999,-9999)"
       )
       .attr("opacity", (r) => (r.ok ? 1 : 0))
-      .attr("text-anchor", (r) => (r.external ? "start" : "middle"))
+      .attr("text-anchor", (r) => r.anchor ?? "middle")
       .attr("dominant-baseline", "central")
       .text((r) => r.abbrev);
 
