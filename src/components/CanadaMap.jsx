@@ -158,6 +158,11 @@ export default function CanadaMap({
       .attr("pointer-events", "none");
 
     const labelFont = Math.max(8, Math.min(13, width / 55));
+    /** Minimum font we'll render inside a province before switching to external label. */
+    const MIN_LABEL_FONT = 7;
+    /** Gap (px) between province right edge and the external label anchor. */
+    const LEADER_PAD = 7;
+
     const labelRows = geo.features.map((feature) => {
       const c = path.centroid(feature);
       const bounds = path.bounds(feature);
@@ -165,19 +170,71 @@ export default function CanadaMap({
       const bboxH = Math.abs(bounds[1][1] - bounds[0][1]);
       const name = feature.properties?.name;
       const abbrev = name ? PROVINCE_NAME_TO_ABBREV[name] ?? "" : "";
+      const validCentroid = Number.isFinite(c[0]) && Number.isFinite(c[1]);
+
+      if (!abbrev || !validCentroid) {
+        return { key: name ?? String(feature), abbrev: "", ok: false, external: false, font: labelFont, cx: -9999, cy: -9999, bboxW: 0, bboxH: 0 };
+      }
+
       const estTextW = abbrev.length * labelFont * 0.75;
+
+      // Tier 1 — fits internally at the global label font.
+      if (bboxW > estTextW * 0.8 && bboxH > labelFont * 0.6) {
+        return { key: name, cx: c[0], cy: c[1], abbrev, bboxW, bboxH, font: labelFont, ok: true, external: false };
+      }
+
+      // Tier 2 — fits internally at a reduced font (≥ MIN_LABEL_FONT px).
+      const reducedFont = Math.min(
+        bboxW / (abbrev.length * 0.75 * 0.85),
+        bboxH / 0.65
+      );
+      if (reducedFont >= MIN_LABEL_FONT) {
+        return { key: name, cx: c[0], cy: c[1], abbrev, bboxW, bboxH, font: reducedFont, ok: true, external: false };
+      }
+
+      // Tier 3 — too small for internal label: float to the right with a leader line.
       return {
-        key: name ?? String(feature),
-        cx: c[0],
+        key: name,
+        cx: bounds[1][0] + LEADER_PAD,
         cy: c[1],
+        leaderCx: c[0],
+        leaderCy: c[1],
         abbrev,
         bboxW,
         bboxH,
-        ok: Number.isFinite(c[0]) && Number.isFinite(c[1])
-          && bboxW > estTextW * 0.8
-          && bboxH > labelFont * 0.6,
+        font: labelFont,
+        ok: true,
+        external: true,
       };
     });
+
+    /* Leader lines + anchor dots for externally-placed labels (e.g. NS, PE). */
+    const leadersG = g.append("g")
+      .attr("class", "province-leaders")
+      .attr("pointer-events", "none");
+
+    leadersG.selectAll("line")
+      .data(labelRows.filter((r) => r.external && r.ok), (r) => r.key)
+      .join("line")
+      .attr("class", "province-leader-line")
+      .attr("x1", (r) => r.leaderCx)
+      .attr("y1", (r) => r.leaderCy)
+      .attr("x2", (r) => r.cx - 3)
+      .attr("y2", (r) => r.cy)
+      .attr("stroke", "#374151")
+      .attr("stroke-width", 0.75)
+      .attr("stroke-opacity", 0.7);
+
+    leadersG.selectAll("circle")
+      .data(labelRows.filter((r) => r.external && r.ok), (r) => r.key)
+      .join("circle")
+      .attr("class", "province-leader-dot")
+      .attr("cx", (r) => r.leaderCx)
+      .attr("cy", (r) => r.leaderCy)
+      .attr("r", 2)
+      .attr("fill", "#374151")
+      .attr("fill-opacity", 0.55);
+
     g.append("g")
       .attr("class", "province-labels")
       .attr("pointer-events", "none")
@@ -185,12 +242,12 @@ export default function CanadaMap({
       .data(labelRows, (r) => r.key)
       .join("text")
       .attr("class", "province-label")
-      .attr("font-size", labelFont)
+      .attr("font-size", (r) => r.font)
       .attr("transform", (r) =>
         r.ok ? `translate(${r.cx},${r.cy})` : "translate(-9999,-9999)"
       )
       .attr("opacity", (r) => (r.ok ? 1 : 0))
-      .attr("text-anchor", "middle")
+      .attr("text-anchor", (r) => (r.external ? "start" : "middle"))
       .attr("dominant-baseline", "central")
       .text((r) => r.abbrev);
 
@@ -233,14 +290,22 @@ export default function CanadaMap({
       .on("zoom", (event) => {
         gZoom.attr("transform", event.transform);
         const k = event.transform.k;
-        const curFont = labelFont / k;
         g.selectAll(".province-label")
-          .attr("font-size", curFont)
+          .attr("font-size", (d) => d.font / k)
           .attr("opacity", (d) => {
             if (!d.ok) return 0;
+            // External labels (e.g. NS, PE) are always shown — they exist
+            // precisely because the province is too small for an internal label.
+            if (d.external) return 1;
+            const curFont = d.font / k;
             const estW = d.abbrev.length * curFont * 0.75;
             return (d.bboxW * k > estW * 0.8 && d.bboxH * k > curFont * 0.6) ? 1 : 0;
           });
+        // Scale leader lines inversely so their visual weight stays constant.
+        g.selectAll(".province-leader-line")
+          .attr("stroke-width", 0.75 / k);
+        g.selectAll(".province-leader-dot")
+          .attr("r", 2 / k);
       });
 
     svg.call(zoom);
