@@ -70,8 +70,11 @@ export default function CanadaMap({
 
     const g = gZoom.append("g").attr("class", "map-root");
 
-    const hatchId = `hatch-${Math.random().toString(36).slice(2)}`;
+    const uid = Math.random().toString(36).slice(2);
+    const hatchId = `hatch-${uid}`;
+    const shadowId = `shadow-${uid}`;
     const defsRoot = svg.append("defs");
+
     defsRoot
       .append("pattern")
       .attr("id", hatchId)
@@ -79,12 +82,27 @@ export default function CanadaMap({
       .attr("width", 8)
       .attr("height", 8)
       .append("path")
-      .attr(
-        "d",
-        "M-1,1 l2,-2 M0,8 l8,-8 M7,9 l2,-2"
-      )
+      .attr("d", "M-1,1 l2,-2 M0,8 l8,-8 M7,9 l2,-2")
       .attr("stroke", "rgba(30,30,30,0.28)")
       .attr("stroke-width", 1.15);
+
+    /* Drop-shadow filter for the selected-province raise effect.
+       Elevation is communicated through depth (shadow), keeping the fill
+       colour channel entirely reserved for the data metric. */
+    const shadowFilter = defsRoot
+      .append("filter")
+      .attr("id", shadowId)
+      .attr("x", "-40%")
+      .attr("y", "-40%")
+      .attr("width", "180%")
+      .attr("height", "180%");
+    shadowFilter
+      .append("feDropShadow")
+      .attr("dx", 0)
+      .attr("dy", 2)
+      .attr("stdDeviation", 4)
+      .attr("flood-color", "#0f172a")
+      .attr("flood-opacity", 0.38);
 
     const strokeBase = projected ? 0.95 : 0.85;
 
@@ -176,19 +194,34 @@ export default function CanadaMap({
       .attr("dominant-baseline", "central")
       .text((r) => r.abbrev);
 
+    /* Selection uses elevation (shadow + bold stroke) — NOT opacity dimming.
+       Dimming lightens fill colour, which conflicts with the colour-encodes-value
+       principle (lighter = lower value on the YlOrRd ramp). */
     provG.selectAll(".province")
       .attr("opacity", (d) => {
         const name = d.properties?.name;
-        let base = !selectedProvince ? 1 : name === selectedProvince ? 1 : 0.45;
-        if (name && sparseProvinces?.has(name)) base *= 0.92;
-        return base;
+        return name && sparseProvinces?.has(name) ? 0.92 : 1;
       })
+      .attr("stroke", (d) =>
+        d.properties?.name === selectedProvince ? "#0f172a" : "#64748b"
+      )
       .attr("stroke-width", (d) =>
-        d.properties?.name === selectedProvince ? 1.65 : strokeBase
+        d.properties?.name === selectedProvince ? 2.5 : strokeBase
       )
       .attr("stroke-opacity", (d) =>
-        d.properties?.name === selectedProvince ? 0.95 : 0.55
+        d.properties?.name === selectedProvince ? 1 : 0.45
+      )
+      .attr("filter", (d) =>
+        d.properties?.name === selectedProvince ? `url(#${shadowId})` : null
       );
+
+    /* Raise selected province to top of z-order so its shadow
+       renders above neighbouring province fills. */
+    if (selectedProvince) {
+      provG.selectAll(".province")
+        .filter((d) => d.properties?.name === selectedProvince)
+        .raise();
+    }
 
     const zoom = d3
       .zoom()
