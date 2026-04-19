@@ -965,7 +965,8 @@
 
 .map-wrap {
   width: 100%;
-  overflow: hidden;
+  overflow-x: auto;   /* scroll horizontally when SVG width > container (narrow screens) */
+  overflow-y: hidden;
   border-radius: 6px;
   border: 1px solid #d8dee8;
   background: #fafcfe;

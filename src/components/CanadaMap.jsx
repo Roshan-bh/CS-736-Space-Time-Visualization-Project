@@ -22,12 +22,20 @@ export default function CanadaMap({
   const svgRef = useRef(null);
   const [width, setWidth] = useState(720);
 
+  /**
+   * Minimum SVG render width (px). Below this the small Atlantic provinces
+   * (NS, PE) shrink so much that even external leader labels overflow the
+   * SVG viewport and get clipped. The map-wrap scrolls horizontally instead
+   * of letting the SVG shrink past this point.
+   */
+  const MIN_MAP_WIDTH = 500;
+
   useEffect(() => {
     const el = wrapperRef.current;
     if (!el) return;
     const ro = new ResizeObserver((entries) => {
       const w = entries[0]?.contentRect?.width;
-      if (w) setWidth(w);
+      if (w) setWidth(Math.max(w, MIN_MAP_WIDTH));
     });
     ro.observe(el);
     return () => ro.disconnect();
@@ -63,7 +71,7 @@ export default function CanadaMap({
 
     svg
       .attr("viewBox", `0 0 ${width} ${height}`)
-      .attr("width", "100%")
+      .attr("width", width)   /* pixel width — keeps SVG at ≥ MIN_MAP_WIDTH so labels never clip */
       .attr("height", height);
 
     const gZoom = svg.append("g").attr("class", "map-zoom-layer");
