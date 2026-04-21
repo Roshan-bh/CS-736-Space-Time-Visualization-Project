@@ -294,16 +294,10 @@ export default function App() {
   const playbackWeekLabel =
     weeksInRange.length > 0 ? weeksInRange[playbackIndex] : "—";
 
-  const mapLegendFootnote = [
-    sparseTerritoryProvinces.size > 0
-      ? "Hatched regions: northern territories with low reported test volume — interpret cautiously."
-      : null,
+  const mapLegendFootnote =
     selectedMetric === "positivity"
       ? "Same scale maximum as the heatmap (percent)."
-      : "Map shows totals over the selected weeks; heatmap cells are single-week values.",
-  ]
-    .filter(Boolean)
-    .join(" ");
+      : "Map shows totals over the selected weeks; heatmap cells are single-week values.";
 
   const heatLegendFootnote =
     selectedMetric === "positivity"
@@ -762,6 +756,8 @@ export default function App() {
                     format={legendFormat}
                     footnote={mapLegendFootnote}
                     height={78}
+                    showHatchSwatch={sparseTerritoryProvinces.size > 0}
+                    hatchSwatchLabel="Sparse data — interpret cautiously"
                   />
                 </div>
                 <div className="detail-panel">

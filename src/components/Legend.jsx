@@ -18,6 +18,10 @@ export default function Legend({
   format = (d) => String(d),
   /** Optional note below the axis (e.g. scale semantics). */
   footnote,
+  /** When true, renders a diagonal-hatch swatch below the gradient bar. */
+  showHatchSwatch = false,
+  /** Label for the hatch swatch entry. */
+  hatchSwatchLabel = "Sparse data",
 }) {
   const ref = useRef(null);
 
@@ -35,7 +39,8 @@ export default function Legend({
       left: 12,
     };
     const innerW = width - margin.left - margin.right;
-    const svgHeight = height;
+    const swatchRowH = showHatchSwatch ? 22 : 0;
+    const svgHeight = height + swatchRowH;
 
     const g = svg
       .attr("viewBox", `0 0 ${width} ${svgHeight}`)
@@ -104,7 +109,57 @@ export default function Legend({
           .attr("font-size", 11)
       );
 
-  }, [colorScale, width, height, title, format, footnote]);
+    /* Diagonal-hatch swatch — documents the texture pre-attentive channel used
+       on sparse/territory provinces. Mirrors the exact pattern from CanadaMap. */
+    if (showHatchSwatch) {
+      const hatchSwatchId = `lg-hatch-${id}`;
+      defs
+        .append("pattern")
+        .attr("id", hatchSwatchId)
+        .attr("patternUnits", "userSpaceOnUse")
+        .attr("width", 8)
+        .attr("height", 8)
+        .append("path")
+        .attr("d", "M-1,1 l2,-2 M0,8 l8,-8 M7,9 l2,-2")
+        .attr("stroke", "rgba(30,30,30,0.28)")
+        .attr("stroke-width", 1.15);
+
+      // Axis area ends at titleBlock + barH + ~18px ticks
+      const swatchY = titleBlock + barH + 20;
+      const swatchW = 14;
+      const swatchH = 12;
+
+      const swatchG = g.append("g")
+        .attr("transform", `translate(0,${swatchY})`)
+        .attr("class", "legend-hatch-entry");
+
+      // White background so hatch reads clearly on any page background
+      swatchG.append("rect")
+        .attr("width", swatchW)
+        .attr("height", swatchH)
+        .attr("fill", "#fff")
+        .attr("stroke", "#94a3b8")
+        .attr("stroke-width", 0.65);
+
+      // Hatch overlay
+      swatchG.append("rect")
+        .attr("width", swatchW)
+        .attr("height", swatchH)
+        .attr("fill", `url(#${hatchSwatchId})`)
+        .attr("stroke", "#94a3b8")
+        .attr("stroke-width", 0.65);
+
+      swatchG.append("text")
+        .attr("x", swatchW + 6)
+        .attr("y", swatchH / 2)
+        .attr("dominant-baseline", "central")
+        .attr("fill", LEGEND_TICK_FILL)
+        .attr("font-size", 11)
+        .attr("font-weight", "500")
+        .text(hatchSwatchLabel);
+    }
+
+  }, [colorScale, width, height, title, format, footnote, showHatchSwatch, hatchSwatchLabel]);
 
   if (!colorScale) return null;
 
