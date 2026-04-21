@@ -756,7 +756,7 @@ export default function App() {
                     format={legendFormat}
                     footnote={mapLegendFootnote}
                     height={78}
-                    showHatchSwatch={sparseTerritoryProvinces.size > 0}
+                    showHatchSwatch
                     hatchSwatchLabel="Sparse data — interpret cautiously"
                   />
                 </div>
