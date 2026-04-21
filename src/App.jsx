@@ -18,8 +18,6 @@ import WeekRangeSlider from "./components/WeekRangeSlider.jsx";
 import {
   METRIC_OPTIONS,
   VIRUS_OPTIONS,
-  CANADA_TERRITORY_NAMES,
-  TERRITORY_SPARSE_TEST_THRESHOLD,
 } from "./utils/constants.js";
 import { useVirusData } from "./hooks/useVirusData.js";
 import { APP_TOUR_STEPS, TOUR_FIRST_COMPARE_STEP_INDEX } from "./appTour.js";
@@ -189,6 +187,7 @@ export default function App() {
         positives: new Map(),
         tests: new Map(),
         positivity: new Map(),
+        positives_population: new Map(),
       };
     }
     const weekSlice = (playbackRunning || mapPlayback.paused)
@@ -212,6 +211,12 @@ export default function App() {
         data.provinceList,
         weekSlice,
         "positivity"
+      ),
+      positives_population: sumMetricByProvinceOverWeeks(
+        data.agg,
+        data.provinceList,
+        weekSlice,
+        "positives_population"
       ),
     };
   }, [
@@ -240,7 +245,7 @@ export default function App() {
 
   const mapColorScale = useMemo(() => {
     const max =
-      selectedMetric === "positivity"
+      selectedMetric === "positivity" || selectedMetric === "positives_population"
         ? Math.max(mapMax, heatMax, 1e-9)
         : Math.max(mapMax, 1e-9);
     return choroplethScaleYlOrRd(0, max);
@@ -248,27 +253,11 @@ export default function App() {
 
   const heatmapColorScale = useMemo(() => {
     const max =
-      selectedMetric === "positivity"
+      selectedMetric === "positivity" || selectedMetric === "positives_population"
         ? Math.max(mapMax, heatMax, 1e-9)
         : Math.max(heatMax, 1e-9);
     return choroplethScaleYlOrRd(0, max);
   }, [selectedMetric, mapMax, heatMax]);
-
-  const sparseTerritoryProvinces = useMemo(() => {
-    const sparse = new Set();
-    const wkSet = new Set(weeksInRange);
-    const sums = new Map(CANADA_TERRITORY_NAMES.map((n) => [n, 0]));
-    for (const [, row] of data.agg) {
-      if (!wkSet.has(row.weekKey)) continue;
-      if (sums.has(row.province)) {
-        sums.set(row.province, (sums.get(row.province) ?? 0) + row.tests);
-      }
-    }
-    for (const p of CANADA_TERRITORY_NAMES) {
-      if ((sums.get(p) ?? 0) < TERRITORY_SPARSE_TEST_THRESHOLD) sparse.add(p);
-    }
-    return sparse;
-  }, [data.agg, weeksInRange]);
 
   const metricLabel =
     METRIC_OPTIONS.find((m) => m.id === selectedMetric)?.label ?? selectedMetric;
@@ -276,6 +265,7 @@ export default function App() {
   const legendFormat = useCallback(
     (v) => {
       if (selectedMetric === "positivity") return `${d3.format(".1f")(v)}%`;
+      if (selectedMetric === "positives_population") return `${d3.format(".4f")(v)}%`;
       return d3.format(",.0f")(v);
     },
     [selectedMetric]
@@ -286,6 +276,7 @@ export default function App() {
     (metricId, v) => {
       const n = v == null || Number.isNaN(v) ? 0 : v;
       if (metricId === "positivity") return `${d3.format(".1f")(n)}%`;
+      if (metricId === "positives_population") return `${d3.format(".4f")(n)}%`;
       return d3.format(",.0f")(n);
     },
     []
@@ -297,11 +288,15 @@ export default function App() {
   const mapLegendFootnote =
     selectedMetric === "positivity"
       ? "Same scale maximum as the heatmap (percent)."
+      : selectedMetric === "positives_population"
+        ? "Positive tests divided by total region population."
       : "Map shows totals over the selected weeks; heatmap cells are single-week values.";
 
   const heatLegendFootnote =
     selectedMetric === "positivity"
       ? "Same colour ramp and scale maximum as the map (%)."
+      : selectedMetric === "positives_population"
+        ? "Same colour ramp and scale maximum as the map; weekly cells show positive tests divided by total region population."
       : "Same yellow–orange–red ramp as the map; weekly cell max differs from map range totals.";
 
   const mapPanelMetricNote = playbackRunning
@@ -743,7 +738,6 @@ export default function App() {
                     selectedProvince={selectedProvince}
                     onSelectProvince={setSelectedProvince}
                     onProvinceHover={onMapHover}
-                    sparseProvinces={sparseTerritoryProvinces}
                   />
                 </div>
               )}
@@ -756,8 +750,6 @@ export default function App() {
                     format={legendFormat}
                     footnote={mapLegendFootnote}
                     height={78}
-                    showHatchSwatch
-                    hatchSwatchLabel="Sparse data — interpret cautiously"
                   />
                 </div>
                 <div className="detail-panel">
@@ -778,6 +770,10 @@ export default function App() {
                             <tr>
                               <td>Positivity</td>
                               <td>{formatMetricValueById("positivity", choroplethMapsByMetric.positivity?.get(displayProvince))}</td>
+                            </tr>
+                            <tr>
+                              <td>Positive tests / population</td>
+                              <td>{formatMetricValueById("positives_population", choroplethMapsByMetric.positives_population?.get(displayProvince))}</td>
                             </tr>
                             <tr>
                               <td>Positive tests</td>
@@ -1005,17 +1001,38 @@ export default function App() {
             {METRIC_OPTIONS.some((m) => m.id !== selectedMetric) && (
               <>
                 <hr className="tt-divider" aria-hidden />
-                {METRIC_OPTIONS.filter((m) => m.id !== selectedMetric).map(
-                  (m) => (
-                    <div key={m.id} className="tt-line tt-line--secondary">
-                      {m.label}:{" "}
-                      {formatMetricValueById(
-                        m.id,
-                        choroplethMapsByMetric[m.id]?.get(mapTip.province)
-                      )}
-                    </div>
-                  )
+                {selectedMetric !== "positivity" && (
+                  <div className="tt-line tt-line--secondary">
+                    Positivity rate (%):{" "}
+                    {formatMetricValueById(
+                      "positivity",
+                      choroplethMapsByMetric.positivity?.get(mapTip.province)
+                    )}
+                  </div>
                 )}
+                {selectedMetric !== "positives_population" && (
+                  <div className="tt-line tt-line--secondary">
+                    Population burden (%):{" "}
+                    {formatMetricValueById(
+                      "positives_population",
+                      choroplethMapsByMetric.positives_population?.get(mapTip.province)
+                    )}
+                  </div>
+                )}
+                {METRIC_OPTIONS.filter(
+                  (m) =>
+                    m.id !== selectedMetric &&
+                    m.id !== "positivity" &&
+                    m.id !== "positives_population"
+                ).map((m) => (
+                  <div key={m.id} className="tt-line tt-line--secondary">
+                    {m.label}:{" "}
+                    {formatMetricValueById(
+                      m.id,
+                      choroplethMapsByMetric[m.id]?.get(mapTip.province)
+                    )}
+                  </div>
+                ))}
               </>
             )}
           </>

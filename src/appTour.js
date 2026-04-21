@@ -10,54 +10,54 @@ export const APP_TOUR_STEPS = [
     target: '[data-tour="app-header"]',
     title: "Welcome",
     content:
-      "This walkthrough covers the Dashboard (map, trend, optional matrix) and the Province & virus comparison page\u2014plus filters, multi-virus overlays, and comparison charts. Use Next to follow in order.",
+      "This walkthrough covers the Dashboard (map, trend, optional matrix) and the Province & virus comparison page - plus filters, multi-virus overlays, and comparison charts. Use Next to follow in order.",
     placement: "bottom",
   },
   {
     target: '[data-tour="tour-sidebar-nav"]',
     title: "Pages",
     content:
-      "Dashboard links the choropleth map, temporal trend, and optional Province \u00d7 Week matrix. Province & virus comparison opens a dedicated page for comparing multiple provinces side by side.",
+      "Dashboard links the choropleth map, temporal trend, and optional Province x Week matrix. Province & virus comparison opens a dedicated page for comparing multiple provinces side by side.",
     placement: "bottom",
   },
   {
     target: '[data-tour="tour-filters-intro"]',
     title: "Filters bar",
     content:
-      "All controls here apply across the map, trend chart, and matrix \u2014 same virus, metric, and province selection throughout the dashboard.",
+      "All controls here apply across the map, trend chart, and matrix - same virus, metric, and province selection throughout the dashboard.",
     placement: "bottom",
   },
   {
     target: '[data-tour="tour-filter-virus"]',
     title: "Virus",
     content:
-      "Choose which respiratory virus to explore. Changing this updates the map and trend chart to that pathogen\u2019s surveillance data.",
+      "Choose which respiratory virus to explore. Changing this updates the map and trend chart to that pathogen's surveillance data.",
     placement: "bottom",
   },
   {
     target: '[data-tour="tour-filter-metric"]',
     title: "Metric",
     content:
-      "Pick what to measure \u2014 positivity rate, positive test count, or total test volume. The map and heatmap share the same colour ramp.",
+      "Pick what to measure - positivity rate, positive test count, positive tests as a percent of population, or total test volume. The map and heatmap share the same colour ramp.",
     placement: "bottom",
   },
   {
     target: '[data-tour="tour-filter-province"]',
     title: "Province filter",
     content:
-      "Select a province from the dropdown to focus the trend chart and map highlight on that region. Defaults to \u2018All provinces\u2019 (national view). You can also click directly on the map to select a province.",
+      "Select a province from the dropdown to focus the trend chart and map highlight on that region. Defaults to 'All provinces' (national view). You can also click directly on the map to select a province.",
     placement: "bottom",
   },
   {
     target: '[data-tour="tour-filter-reset"]',
     title: "Reset",
     content:
-      "Clears the selected province and restores the week range to the full data span \u2014 without changing virus or metric.",
+      "Clears the selected province and restores the week range to the full data span - without changing virus or metric.",
     placement: "bottom",
   },
   {
     target: '[data-tour="tour-matrix-toggle"]',
-    title: "Province \u00d7 week matrix",
+    title: "Province x week matrix",
     content:
       "Turn this on to show the heatmap beside the choropleth on wide screens, or off to give the map the full width. Click row labels in the matrix to select a province.",
     placement: "bottom",
@@ -94,7 +94,7 @@ export const APP_TOUR_STEPS = [
     target: '[data-tour="panel-cross-compare"]',
     title: "Province & virus comparison page",
     content:
-      "You\u2019re on the comparison page. Select provinces and viruses using the checkboxes, then use the week range bar below the selection to set your time window. Each virus gets its own chart comparing all selected provinces.",
+      "You're on the comparison page. Select provinces and viruses using the checkboxes, then use the week range bar below the selection to set your time window. Each virus gets its own chart comparing all selected provinces.",
     placement: "left",
   },
   {
@@ -108,7 +108,7 @@ export const APP_TOUR_STEPS = [
     target: '[data-tour="tour-compare-grids"]',
     title: "Provinces and viruses",
     content:
-      "Check provinces and viruses to build your comparison. Limits apply when the selection is too large \u2014 reduce checkboxes if you see a warning. The week range bar below lets you set the time window.",
+      "Check provinces and viruses to build your comparison. Limits apply when the selection is too large - reduce checkboxes if you see a warning. The week range bar below lets you set the time window.",
     placement: "left",
   },
 ];

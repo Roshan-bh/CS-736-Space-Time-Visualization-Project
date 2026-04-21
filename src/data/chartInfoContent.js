@@ -7,7 +7,7 @@ export const CHART_INFO = {
     title: "Regional activity (choropleth map)",
     guide: [
       "Each province or territory is coloured by the selected metric over your week range (or one week at a time while playback is running). Darker colours mean higher values on the shared yellow–orange–red scale.",
-      "Click a province to focus the temporal trend chart on that region versus national. Hover for the value; hatched northern areas may reflect low test volume—interpret cautiously.",
+      "Click a province to focus the temporal trend chart on that region versus national. Hover for the value. Use the population-based option when you want to compare regions of different sizes.",
     ],
     notes: [
       "Map values are range totals over the selected weeks for count metrics; positivity uses comparable units with the heatmap when both are shown.",

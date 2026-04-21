@@ -2,7 +2,7 @@
  * CSV loading, filtering, aggregation, and metric helpers for RVD-style tables.
  */
 
-import { CSV_COLUMNS } from "./constants.js";
+import { CANADA_PROVINCE_POPULATIONS, CANADA_TOTAL_POPULATION, CSV_COLUMNS } from "./constants.js";
 import { mapReportingLaboratoryToProvince, normalizeProvinceName } from "./provinceMapping.js";
 
 /**
@@ -57,9 +57,14 @@ export function positivityRate(positives, tests) {
 /**
  * @param {{ positives: number, tests: number }} counts
  * @param {import('./constants.js').MetricId} metric
+ * @param {string} [province]
  */
-export function metricValue(counts, metric) {
+export function metricValue(counts, metric, province) {
   if (metric === "positives") return counts.positives;
+  if (metric === "positives_population") {
+    const pop = province ? CANADA_PROVINCE_POPULATIONS[province] ?? 0 : 0;
+    return pop > 0 ? (counts.positives / pop) * 100 : 0;
+  }
   if (metric === "tests") return counts.tests;
   const p = positivityRate(counts.positives, counts.tests);
   return p == null ? 0 : p;
@@ -181,7 +186,7 @@ export function sumMetricByProvinceOverWeeks(agg, provinces, weekKeysInRange, me
   const byProvince = new Map();
   const weekSet = new Set(weekKeysInRange);
 
-  if (metric === "positivity") {
+  if (metric === "positivity" || metric === "positives_population") {
     /** @type {Map<string, { tests: number, positives: number }>} */
     const sums = new Map();
     for (const p of provinces) sums.set(p, { tests: 0, positives: 0 });
@@ -195,8 +200,13 @@ export function sumMetricByProvinceOverWeeks(agg, provinces, weekKeysInRange, me
     }
     for (const p of provinces) {
       const s = sums.get(p);
-      const rate = s ? positivityRate(s.positives, s.tests) : null;
-      byProvince.set(p, rate == null ? 0 : rate);
+      if (metric === "positivity") {
+        const rate = s ? positivityRate(s.positives, s.tests) : null;
+        byProvince.set(p, rate == null ? 0 : rate);
+        continue;
+      }
+      const pop = CANADA_PROVINCE_POPULATIONS[p] ?? 0;
+      byProvince.set(p, s && pop > 0 ? (s.positives / pop) * 100 : 0);
     }
     return byProvince;
   }
@@ -235,6 +245,8 @@ export function nationalSeriesForWeeks(agg, weekKeysInRange, metric) {
     if (metric === "positivity") {
       const p = positivityRate(positives, tests);
       value = p == null ? 0 : p;
+    } else if (metric === "positives_population") {
+      value = CANADA_TOTAL_POPULATION > 0 ? (positives / CANADA_TOTAL_POPULATION) * 100 : 0;
     } else if (metric === "tests") {
       value = tests;
     } else {
@@ -271,6 +283,9 @@ export function provinceSeriesForWeeks(agg, province, weekKeysInRange, metric) {
     if (metric === "positivity") {
       const p = positivityRate(positives, tests);
       value = p == null ? 0 : p;
+    } else if (metric === "positives_population") {
+      const pop = CANADA_PROVINCE_POPULATIONS[target] ?? 0;
+      value = pop > 0 ? (positives / pop) * 100 : 0;
     } else if (metric === "tests") {
       value = tests;
     } else {
@@ -304,7 +319,7 @@ export function heatmapMatrix(agg, provinceList, weekKeysInRange, metric) {
       const counts = cell
         ? { positives: cell.positives, tests: cell.tests }
         : { positives: 0, tests: 0 };
-      const v = metricValue(counts, metric);
+      const v = metricValue(counts, metric, p);
       rowMap.set(wk, v);
     }
   }

@@ -15,8 +15,6 @@ export default function CanadaMap({
   selectedProvince,
   onSelectProvince,
   onProvinceHover,
-  /** Provinces with sparse lab data (e.g. territories) — diagonal hatch overlay. */
-  sparseProvinces,
 }) {
   const wrapperRef = useRef(null);
   const svgRef = useRef(null);
@@ -79,20 +77,8 @@ export default function CanadaMap({
     const g = gZoom.append("g").attr("class", "map-root");
 
     const uid = Math.random().toString(36).slice(2);
-    const hatchId = `hatch-${uid}`;
     const shadowId = `shadow-${uid}`;
     const defsRoot = svg.append("defs");
-
-    defsRoot
-      .append("pattern")
-      .attr("id", hatchId)
-      .attr("patternUnits", "userSpaceOnUse")
-      .attr("width", 8)
-      .attr("height", 8)
-      .append("path")
-      .attr("d", "M-1,1 l2,-2 M0,8 l8,-8 M7,9 l2,-2")
-      .attr("stroke", "rgba(30,30,30,0.28)")
-      .attr("stroke-width", 1.15);
 
     /* Drop-shadow filter for the selected-province raise effect.
        Elevation is communicated through depth (shadow), keeping the fill
@@ -155,15 +141,6 @@ export default function CanadaMap({
         const name = d.properties?.name;
         if (name) onSelectProvince(name);
       });
-
-    provG
-      .selectAll(".province-sparse")
-      .data(geo.features.filter((f) => sparseProvinces?.has(f.properties?.name)))
-      .join("path")
-      .attr("class", "province-sparse")
-      .attr("d", path)
-      .attr("fill", `url(#${hatchId})`)
-      .attr("pointer-events", "none");
 
     const labelFont = Math.max(8, Math.min(13, width / 55));
     /** Minimum font we'll render inside a province before switching to external label. */
@@ -293,14 +270,7 @@ export default function CanadaMap({
       .attr("dominant-baseline", "central")
       .text((r) => r.abbrev);
 
-    /* Selection uses elevation (shadow + bold stroke) — NOT opacity dimming.
-       Dimming lightens fill colour, which conflicts with the colour-encodes-value
-       principle (lighter = lower value on the YlOrRd ramp). */
     provG.selectAll(".province")
-      .attr("opacity", (d) => {
-        const name = d.properties?.name;
-        return name && sparseProvinces?.has(name) ? 0.92 : 1;
-      })
       .attr("stroke", (d) =>
         d.properties?.name === selectedProvince ? "#0f172a" : "#64748b"
       )
@@ -369,7 +339,6 @@ export default function CanadaMap({
     selectedProvince,
     onProvinceHover,
     onSelectProvince,
-    sparseProvinces,
   ]);
 
   return (

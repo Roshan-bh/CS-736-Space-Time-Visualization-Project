@@ -10,7 +10,7 @@
  */
 
 /** @typedef {'covid19' | 'influenza' | 'influenza_a' | 'influenza_b' | 'rsv' | 'hpiv' | 'adv' | 'hmpv' | 'evrv' | 'hcov'} VirusId */
-/** @typedef {'positives' | 'tests' | 'positivity'} MetricId */
+/** @typedef {'positives' | 'positives_population' | 'tests' | 'positivity'} MetricId */
 
 /**
  * Per-virus CSV columns. `tests` and `positives` are column name(s); use an array for `positives`
@@ -107,9 +107,32 @@ export const CANADA_TERRITORY_NAMES = [
 /** Sum of tests below this (over the selected week range) flags a territory as sparse. */
 export const TERRITORY_SPARSE_TEST_THRESHOLD = 500;
 
+/** 2021 Census population estimates for provinces and territories. */
+export const CANADA_PROVINCE_POPULATIONS = {
+  Ontario: 16191000,
+  Quebec: 9058000,
+  "British Columbia": 5683000,
+  Alberta: 5041000,
+  Manitoba: 1507000,
+  Saskatchewan: 1266000,
+  "Nova Scotia": 1092000,
+  "New Brunswick": 869000,
+  "Newfoundland and Labrador": 550000,
+  "Prince Edward Island": 180000,
+  "Northwest Territories": 45000,
+  "Yukon Territory": 45000,
+  Nunavut: 40000,
+};
+
+export const CANADA_TOTAL_POPULATION = Object.values(CANADA_PROVINCE_POPULATIONS).reduce(
+  (sum, population) => sum + population,
+  0
+);
+
 /** @type { { id: MetricId, label: string }[] } */
 export const METRIC_OPTIONS = [
   { id: "positives", label: "Positive tests" },
+  { id: "positives_population", label: "Population burden (%)" },
   { id: "tests", label: "Test volume" },
   { id: "positivity", label: "Positivity rate (%)" },
 ];
